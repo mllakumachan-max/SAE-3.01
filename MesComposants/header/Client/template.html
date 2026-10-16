@@ -1,0 +1,46 @@
+<header class="sticky top-0 z-10 border-b border-zinc-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+  <!-- Ligne principale : Logo, Recherche, Actions utilisateur -->
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-3.5">
+    <div class="flex items-center gap-8">
+      <a href="/" data-link class="flex items-center gap-2">
+        <span class="rounded-md bg-blue-600 px-2.5 py-1 text-lg font-black tracking-wider text-white">ACTION</span>
+        <span class="hidden text-xs font-medium text-zinc-500 sm:inline dark:text-zinc-400">Click & Collect</span>
+      </a>
+    </div>
+
+    <!-- Actions à droite : Thème, Compte, Panier -->
+    <div class="flex items-center gap-3">
+      <button type="button" data-action="theme" aria-label="Changer de thème" class="flex h-9 items-center rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        Thème
+      </button>
+
+      <a href="/compte" data-link class="flex h-9 items-center gap-1.5 rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span>Mon compte</span>
+      </a>
+
+      <!-- Bouton Panier avec compteur d'articles (CMD-b) -->
+      <a href="/panier" data-link class="relative flex h-9 items-center gap-2 rounded-md bg-blue-600 px-3.5 text-xs font-semibold text-white transition-opacity hover:opacity-90">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <span>Panier</span>
+        <span data-role="compteur-panier" class="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] font-bold text-blue-600">
+          {{nbArticles}}
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Barre de catégories (DEC-a) -->
+  <div class="border-t border-zinc-100 bg-zinc-50/80 px-6 py-2 dark:border-zinc-800 dark:bg-zinc-900/50">
+    <nav class="mx-auto flex max-w-6xl items-center gap-6 overflow-x-auto text-sm">
+      <a href="/" data-link class="font-medium text-zinc-900 hover:text-blue-600 aria-[current=page]:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400 dark:aria-[current=page]:text-blue-400">
+        Tous les produits
+      </a>
+      {{categorie}}
+    </nav>
+  </div>
+</header>
