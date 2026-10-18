@@ -1,0 +1,34 @@
+<section class="mb-6 rounded-lg border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+    <h2 class="mb-4 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">Mon profil</h2>
+    <form class="flex flex-col gap-4" novalidate>
+        <p data-zone="message" role="alert" class="hidden rounded-md border border-red-700 p-3 text-sm text-red-700 dark:border-red-400 dark:text-red-400"></p>
+
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Nom
+        <input name="nom" type="text" required value="{{nom}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        </label>
+
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Adresse email
+        <input name="email" type="email" required autocomplete="email" value="{{email}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        </label>
+
+        <fieldset class="flex flex-col gap-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            <legend class="text-sm text-zinc-500 dark:text-zinc-400">Changer de mot de passe (facultatif)</legend>
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Mot de passe actuel
+                <input name="mdpActuel" type="password" autocomplete="current-password" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+            </label>
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Nouveau mot de passe
+                <input name="mdpNouveau" type="password" autocomplete="new-password" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+            </label>
+            <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                Confirmer le nouveau mot de passe
+                <input name="mdpConfirmation" type="password" autocomplete="new-password" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+            </label>
+        </fieldset>
+
+        <button type="submit" class="mt-2 h-10 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:opacity-90 dark:bg-zinc-50 dark:text-zinc-900">Enregistrer</button>
+    </form>
+</section>

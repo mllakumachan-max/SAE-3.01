@@ -1,0 +1,46 @@
+<section class="mb-6 rounded-lg border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+    <h2 class="mb-4 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{{titre}}</h2>
+    <form class="flex flex-col gap-4" novalidate>
+        <p data-zone="message" role="alert" class="hidden rounded-md border border-red-700 p-3 text-sm text-red-700 dark:border-red-400 dark:text-red-400"></p>
+
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Nom du produit
+        <input name="nom" type="text" required value="{{nom}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        </label>
+
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Catégorie
+        <select name="categorieId" required data-zone="categories" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"></select>
+        </label>
+
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Description
+        <textarea name="description" rows="4" class="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">{{description}}</textarea>
+        </label>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            Prix (€)
+            <input name="prix" type="number" min="0" step="0.01" required value="{{prix}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        </label>
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            Stock
+            <input name="stock" type="number" min="0" step="1" required value="{{stock}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        </label>
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            Seuil « Bientôt épuisé »
+            <input name="seuilAlerte" type="number" min="0" step="1" required value="{{seuilAlerte}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        </label>
+        </div>
+
+        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        Image du produit
+        <input name="image" type="file" accept="image/*" class="text-sm font-normal" />
+        </label>
+
+        <div class="mt-2 flex justify-end gap-3">
+        <button type="button" data-action="annuler" class="h-10 rounded-md border border-zinc-200 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800">Annuler</button>
+        <button type="submit" class="h-10 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:opacity-90 dark:bg-zinc-50 dark:text-zinc-900">Enregistrer</button>
+        </div>
+    </form>
+</section>
