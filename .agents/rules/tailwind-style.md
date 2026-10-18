@@ -11,7 +11,9 @@ globs: front/**/*.{html,js,css}
 
 - **Règle fondamentale du compilateur Tailwind** :
   - Tailwind analyse statiquement le code à la recherche de noms complets de classes.
-  - **Interdit** : Concaténer des noms de classes (ex: `"text-" + couleur`, `"bg-" + statut + "-500"`). Ces classes ne sont pas détectées et n'existeront pas dans le CSS compilé.
+  - **Interdit** : 
+    - Concaténer des noms de classes (ex: `"text-" + couleur`, `"bg-" + statut + "-500"`). Ces classes ne sont pas détectées et n'existeront pas dans le CSS compilé.
+    - Utiliser `absolute`
 
 - **Utilisation Dynamique de Tailwind** :
   Pour injecter des couleurs, tailles, thèmes ou données calculées dynamiquement sans casser Tailwind :
