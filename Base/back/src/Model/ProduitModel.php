@@ -12,7 +12,7 @@ use PDO;
  * Cette couche ne contient aucune règle métier et ne décide de rien :
  * elle exécute les requêtes qu'on lui demande et renvoie des tableaux.
  */
-final class FilmModel
+final class ProduitModel
 {
     /** Connexion à la base, fournie à la construction. */
     private PDO $pdo;
@@ -23,36 +23,44 @@ final class FilmModel
     }
 
     /**
-     * Nombre de films du catalogue.
+     * Nombre de produits du catalogue.
      */
     public function compter(): int
     {
-        return (int) $this->pdo->query('SELECT COUNT(*) FROM film')->fetchColumn();
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM produit')->fetchColumn();
     }
 
     /**
      * Une page du catalogue.
      *
-     * @param string $ordre  Fragment SQL de tri, par exemple « film.titre ASC ».
+     * @param string $ordre  Fragment SQL de tri, par exemple « produit.titre ASC ».
      *                       ATTENTION : ce fragment est inséré tel quel dans la
      *                       requête. Il ne doit JAMAIS provenir directement de
      *                       l'utilisateur — voir la liste blanche du contrôleur.
-     * @param int    $limite Nombre de films à renvoyer.
-     * @param int    $decalage Nombre de films à sauter (pagination).
+     * @param int    $limite Nombre de produits à renvoyer.
+     * @param int    $decalage Nombre de produits à sauter (pagination).
      */
     public function lister(string $ordre, int $limite, int $decalage): array
     {
-        $sql = "SELECT film.id,
-                       film.titre,
-                       film.realisateur,
-                       film.annee,
-                       film.duree_minutes,
-                       film.note_moyenne,
-                       genre.libelle AS genre
-                  FROM film
-            INNER JOIN genre ON genre.id = film.genre_id
-              ORDER BY {$ordre}, film.id
-                 LIMIT :limite OFFSET :decalage";
+        $sql = "SELECT produit.id,
+                       produit.reference,
+                       produit.nom,
+                       produit.marque,
+                       produit.format,
+                       produit.prix,
+                       produit.prix_unitaire,
+                       produit.unite_prix,
+                       produit.badge,
+                       categorie.libelle AS categorie
+                  FROM produit
+            INNER JOIN categorie ON categorie.id = produit.categorie_id
+              ORDER BY {$ordre}, produit.id
+                 LIMIT :limite OFFSET :decalage,
+                        categorie.libelle AS sous_categorie
+                    FROM produit
+              INNER JOIN sous_categorie ON categorie.id = produit.sous_categorie_id
+                ORDER BY {$ordre}, produit.id
+                   LIMIT :limite OFFSET :decalage";
 
         $requetePreparee = $this->pdo->prepare($sql);
 
@@ -68,20 +76,21 @@ final class FilmModel
     /**
      * Statistiques globales du catalogue, pour la zone d'administration.
      */
+    /*
     public function statistiques(): array
     {
         $global = $this->pdo->query(
             'SELECT COUNT(*)           AS total,
                     AVG(note_moyenne)  AS note_moyenne,
                     AVG(duree_minutes) AS duree_moyenne
-               FROM film'
+               FROM produit'
         )->fetch();
 
         $parGenre = $this->pdo->query(
             'SELECT genre.libelle AS genre,
                     COUNT(*)      AS nombre
-               FROM film
-         INNER JOIN genre ON genre.id = film.genre_id
+               FROM produit
+         INNER JOIN genre ON genre.id = produit.genre_id
            GROUP BY genre.libelle
            ORDER BY nombre DESC, genre.libelle ASC'
         )->fetchAll();
@@ -103,5 +112,5 @@ final class FilmModel
             'dureeMoyenne' => (int) round((float) $global['duree_moyenne']),
             'parGenre'     => $genres,
         ];
-    }
+    }*/
 }

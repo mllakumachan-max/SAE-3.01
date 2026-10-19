@@ -6,12 +6,12 @@ namespace App\Controller;
 
 use App\Core\Request;
 use App\Core\Response;
-use App\Model\FilmModel;
+use App\Model\ProduitModel;
 
 /**
  * Liste paginée et triée du catalogue.
  *
- * Le tri et le nombre de films par page sont des préférences : elles sont
+ * Le tri et le nombre de produits par page sont des préférences : elles sont
  * mémorisées dans des cookies et appliquées aux visites suivantes.
  */
 final class CatalogueController
@@ -28,22 +28,21 @@ final class CatalogueController
      * 'titre' », une chaîne constante : le tri ne trie plus rien, sans erreur.
      */
     private const TRIS = [
-        'titre' => 'film.titre ASC',
-        'annee' => 'film.annee DESC',
-        'note'  => 'film.note_moyenne DESC',
+        'titre' => 'produit.titre ASC',
+        'prix'  => 'produit.prix ASC',
     ];
 
     private const PAR_PAGE_AUTORISES = [12, 24, 48];
 
     /** Le modèle qui interroge la base, fourni à la construction. */
-    private FilmModel $films;
+    private ProduitModel $produits;
 
     /** Chemin du projet sur le serveur, celui des cookies (voir config.php). */
     private string $chemin;
 
-    public function __construct(FilmModel $films, string $chemin)
+    public function __construct(ProduitModel $produits, string $chemin)
     {
-        $this->films  = $films;
+        $this->produits = $produits;
         $this->chemin = $chemin;
     }
 
@@ -81,15 +80,15 @@ final class CatalogueController
         $parPage = in_array($parPage, self::PAR_PAGE_AUTORISES, true) ? $parPage : 12;
         $ordre   = self::TRIS[$tri];
 
-        $total       = $this->films->compter();
+        $total       = $this->produits->compter();
         $pagesTotal  = max(1, (int) ceil($total / $parPage));
         $page        = (int) ($requete->parametre('page', '1') ?? '1');
         $page        = max(1, min($page, $pagesTotal));
 
-        $films = $this->films->lister($ordre, $parPage, ($page - 1) * $parPage);
+        $produits = $this->produits->lister($ordre, $parPage, ($page - 1) * $parPage);
 
         Response::json([
-            'films' => $films,
+            'produits' => $produits,
             // Le front n'a pas besoin de lire les cookies : l'API lui rappelle
             // les réglages effectivement appliqués.
             'tri'        => $tri,

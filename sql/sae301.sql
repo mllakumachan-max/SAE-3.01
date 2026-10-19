@@ -70,14 +70,15 @@ CREATE TABLE produit (
 -- Galeries
 -- ---------------------------------------------------------------------------
 CREATE TABLE galerie (
-    id                  TINYINT UNSIGNED    NOT NULL AUTO_INCREMENT,
+    id                  SMALLINT UNSIGNED   NOT NULL AUTO_INCREMENT,
     chemin              VARCHAR(40)         NOT NULL,
-    produit_id          TINYINT UNSIGNED    NOT NULL,
+    produit_id          SMALLINT UNSIGNED   NOT NULL,
     ordre               TINYINT UNSIGNED    NOT NULL DEFAULT 1,
     texte_alternatif    VARCHAR(160)        NULL,
 
     PRIMARY KEY (id),
     UNIQUE KEY uq_galerie_chemin (chemin),
+    KEY idx_galerie_produit (produit_id),
 
     CONSTRAINT fk_galerie_produit
         FOREIGN KEY (produit_id) REFERENCES produit (id)
@@ -86,6 +87,7 @@ CREATE TABLE galerie (
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------------
 -- Catégories
 -- ---------------------------------------------------------------------------
@@ -109,7 +111,7 @@ INSERT INTO categorie (libelle, slug, parent_id) VALUES
 -- Produits
 -- ---------------------------------------------------------------------------
 INSERT INTO produit
-    (reference_action,
+    (reference,
     nom,
     marque,
     format,
@@ -283,7 +285,7 @@ VALUES
 -- ---------------------------------------------------------------------------
 -- Galeries
 -- ---------------------------------------------------------------------------
-INSERT INTO galerie
-    (chemin, produit_id, ordre, texte_alternatif)
-VALUES
+-- INSERT INTO galerie
+--     (chemin, produit_id, ordre, texte_alternatif)
+-- VALUES
     
