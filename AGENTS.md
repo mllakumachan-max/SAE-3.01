@@ -9,8 +9,8 @@ Le projet s'appuie sur une **API REST en PHP (3 couches)** et une **application 
 ## Architecture Générale
 
 ```
-SAE301-Starter/
-├── sql/import.sql       -> Schéma MySQL et données initiales (InnoDB, utf8mb4)
+SAÉ 3.01/
+├── sql/sae301.sql       -> Schéma MySQL et données initiales (InnoDB, utf8mb4)
 ├── base
 │   ├── .htaccess            -> Route /api/... vers back/index.php, le reste vers front/dist/
 │   └── back/                -> API PHP REST (ne renvoie STRICTEMENT que du JSON)
@@ -26,10 +26,12 @@ SAE301-Starter/
     └── src/
         ├── main.js      -> Point d'entrée, déclaration des layouts et routes
         ├── global.css   -> Tailwind CSS v4, thème sombre, utilitaires CSS
+        ├── icons.html   -> Sprite svg, icônes présentes sur le site web
         ├── layouts/     -> Layouts structurels (RootLayout avec <slot>)
         ├── pages/       -> Pages complètes avec architecture MVC LOCAL (M, C, V)
         ├── ui/          -> Composants réutilisables (template.html?raw + index.js)
         ├── data/        -> Couche d'accès à l'API (fetch, getRequest, postRequest)
+        ├── images/      -> Images du site rassemblées
         └── lib/         -> router.js, api-request.js, utils.js, format.js, theme.js
 ```
 
@@ -121,3 +123,11 @@ Pour gérer du **style dynamique** avec des variables :
   ```bash
   node .agents/skills/verifier-projet/scripts/check-projet.js .
   ```
+
+## 4. Skills disponibles
+
+- `creer-table-sql` : ajouter une table dans `sql/sae301.sql`
+- `ajouter-route-api` : ajouter une route (modèle, contrôleur, routes.php)
+- `creer-page-mvc` : créer une page front
+- `creer-composant-ui` : créer un composant front
+- `verifier-projet` : contrôler la cohérence du projet
