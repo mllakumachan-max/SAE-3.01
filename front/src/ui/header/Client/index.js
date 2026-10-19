@@ -1,5 +1,6 @@
 import { genericRenderer, htmlToFragment } from "../../../lib/utils.js";
 import { basculerTheme } from "../../../lib/theme.js";
+import { CategorieData } from "../../../data/categorie.js";
 import template from "./template.html?raw";
 import templateA from "./templateA.html?raw";
 import logoUrl from "../../../images/logo.webp";
@@ -39,20 +40,13 @@ let HeaderClientView = {
   dom: function (data = {}, actions = {}) {
     let fragment = htmlToFragment(HeaderClientView.html(data));
 
-    // Insertion propre des liens de catégories dans le slot sans passer par escapeHtml
     let slotCategories = fragment.querySelector('slot[name="categories"]');
-    if (slotCategories && Array.isArray(data.categories)) {
-      let liensCategories = data.categories.map((cat) => {
-        let htmlLien = genericRenderer(templateA, {
-          nom: cat.nom || cat.libelle || "",
-          lien: cat.lien || (cat.id ? `/categorie/${cat.id}` : "/"),
-          "nb-produits": cat.nb_produits ?? cat.nbProduits ?? "",
-        });
-        return htmlToFragment(htmlLien);
-      });
-      slotCategories.replaceWith(...liensCategories);
-    } else if (slotCategories) {
-      slotCategories.remove();
+    if (slotCategories) {
+      if (Array.isArray(data.categories) && data.categories.length > 0) {
+        slotCategories.replaceWith(...data.categories.map(HeaderClientView.creerLienCategorie));
+      } else {
+        HeaderClientView.chargerCategories(slotCategories);
+      }
     }
 
     let btnTheme = fragment.querySelector('[data-action="theme"]');
@@ -71,6 +65,40 @@ let HeaderClientView = {
     }
 
     return fragment;
+  },
+
+  creerLienCategorie: function (categorie) {
+    const chemin = `/categorie/${encodeURIComponent(categorie.id)}`;
+    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const lien = categorie.lien || `${base}${chemin}`;
+    const fragment = htmlToFragment(
+      genericRenderer(templateA, {
+        nom: categorie.nom || categorie.libelle || "",
+        lien,
+        "nb-produits": categorie.nb_produits ?? categorie.nbProduits ?? 0,
+      })
+    );
+    const element = fragment.firstElementChild;
+
+    if (window.location.pathname === lien) {
+      element.setAttribute("aria-current", "page");
+    }
+
+    return fragment;
+  },
+
+  chargerCategories: async function (slot) {
+    try {
+      const categories = await CategorieData.fetchAll();
+      if (!slot.isConnected) return;
+
+      const liens = categories.map(HeaderClientView.creerLienCategorie);
+      slot.replaceWith(...liens);
+    } catch (erreur) {
+      if (slot?.isConnected) {
+        slot.remove();
+      }
+    }
   },
 };
 

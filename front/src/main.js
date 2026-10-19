@@ -16,6 +16,7 @@ const router = new Router("app", { base: import.meta.env.BASE_URL });
 router.addLayout("/", RootLayout);
 
 router.addRoute("/", CataloguePage);
+router.addRoute("/categorie/:id", CataloguePage);
 router.addRoute("/admin", AdminPage);
 
 // En dernier : toute adresse qui ne correspond à aucune route.

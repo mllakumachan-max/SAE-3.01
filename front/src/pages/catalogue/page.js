@@ -17,6 +17,7 @@ import template from "./template.html?raw";
 let M = {
   catalogue: null, // dernière réponse de l'API : produits et réglages appliqués
   message: null, // { type, texte }, ou null
+  categorieId: null,
 };
 
 let C = {};
@@ -25,9 +26,9 @@ let C = {};
  * Demande une page du catalogue et range la réponse dans le modèle.
  * reglages ({ tri, parPage }) est facultatif, voir data/produit.js.
  */
-C.charger = async function (page, reglages) {
+C.charger = async function (page, reglages, categorieId = M.categorieId) {
   try {
-    M.catalogue = await ProduitData.fetchPage(page, reglages);
+    M.catalogue = await ProduitData.fetchPage(page, reglages, categorieId);
     M.message = null;
   } catch (erreur) {
     M.catalogue = null;
@@ -37,23 +38,24 @@ C.charger = async function (page, reglages) {
 
 // Changer un réglage rend la page courante sans objet : on repart de la première.
 C.handler_changerTri = async function (tri) {
-  await C.charger(1, { tri, parPage: M.catalogue.parPage });
+  await C.charger(1, { tri, parPage: M.catalogue.parPage }, M.categorieId);
   V.rafraichir();
 };
 
 C.handler_changerParPage = async function (parPage) {
-  await C.charger(1, { tri: M.catalogue.tri, parPage });
+  await C.charger(1, { tri: M.catalogue.tri, parPage }, M.categorieId);
   V.rafraichir();
 };
 
 C.handler_changerPage = async function (page) {
-  await C.charger(page, { tri: M.catalogue.tri, parPage: M.catalogue.parPage });
+  await C.charger(page, { tri: M.catalogue.tri, parPage: M.catalogue.parPage }, M.categorieId);
   V.rafraichir();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-C.init = async function () {
-  await C.charger(1);
+C.init = async function (categorieId = null) {
+  M.categorieId = categorieId !== null && categorieId !== undefined && categorieId !== "" ? Number(categorieId) : null;
+  await C.charger(1, undefined, M.categorieId);
   return V.init();
 };
 
@@ -108,6 +110,6 @@ V.createPageFragment = function () {
   return pageFragment;
 };
 
-export function CataloguePage() {
-  return C.init();
+export function CataloguePage(params = {}) {
+  return C.init(params.id ?? params.categorie ?? null);
 }
