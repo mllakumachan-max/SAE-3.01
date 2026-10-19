@@ -2,6 +2,7 @@ import { genericRenderer, htmlToFragment } from "../../../lib/utils.js";
 import { basculerTheme } from "../../../lib/theme.js";
 import template from "./template.html?raw";
 import templateA from "./templateA.html?raw";
+import logoUrl from "../../../images/logo.webp";
 
 /**
  * En-tête de la boutique client.
@@ -21,6 +22,7 @@ let HeaderClientView = {
     return genericRenderer(template, {
       nbArticles: data.nbArticles ?? data.totalArticles ?? 0,
       "icon-theme": iconTheme,
+      "logo-src": logoUrl,
     });
   },
 

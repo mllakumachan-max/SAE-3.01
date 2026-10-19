@@ -3,6 +3,12 @@ import { RootLayout } from "./layouts/root/layout.js";
 import { CataloguePage } from "./pages/catalogue/page.js";
 import { AdminPage } from "./pages/admin/page.js";
 import { The404Page } from "./pages/404/page.js";
+import icons from "./icons.html?raw";
+
+// Les icônes sont des <symbol> déclarés une seule fois dans icons.html. Un
+// <use href="#icon-sun"> ne les trouve que s'ils sont dans la page : on les y
+// place donc avant tout affichage.
+document.body.insertAdjacentHTML("afterbegin", icons);
 
 // base : chemin du projet sur le serveur (BASE dans vite.config.js).
 const router = new Router("app", { base: import.meta.env.BASE_URL });
