@@ -1,7 +1,7 @@
-import { FilmData } from "../../data/film.js";
+import { ProduitData } from "../../data/produit.js";
 import { htmlToFragment } from "../../lib/utils.js";
 import { BarreOutilsView } from "../../ui/barre-outils/index.js";
-import { GrilleFilmsView } from "../../ui/grille-films/index.js";
+import { GrilleProduitsView } from "../../ui/grille-produits/index.js";
 import { MessageView } from "../../ui/message/index.js";
 import { PaginationView } from "../../ui/pagination/index.js";
 import template from "./template.html?raw";
@@ -10,12 +10,12 @@ import template from "./template.html?raw";
  * Page « Catalogue ».
  *
  * Au chargement, on ne précise aucun réglage : le serveur applique les
- * préférences qu'il a mémorisées. Ensuite, le tri et le nombre de films par
+ * préférences qu'il a mémorisées. Ensuite, le tri et le nombre de produits par
  * page accompagnent chaque requête, et le serveur les mémorise.
  */
 
 let M = {
-  catalogue: null, // dernière réponse de l'API : films et réglages appliqués
+  catalogue: null, // dernière réponse de l'API : produits et réglages appliqués
   message: null, // { type, texte }, ou null
 };
 
@@ -23,11 +23,11 @@ let C = {};
 
 /**
  * Demande une page du catalogue et range la réponse dans le modèle.
- * reglages ({ tri, parPage }) est facultatif, voir data/film.js.
+ * reglages ({ tri, parPage }) est facultatif, voir data/produit.js.
  */
 C.charger = async function (page, reglages) {
   try {
-    M.catalogue = await FilmData.fetchPage(page, reglages);
+    M.catalogue = await ProduitData.fetchPage(page, reglages);
     M.message = null;
   } catch (erreur) {
     M.catalogue = null;
@@ -99,7 +99,7 @@ V.createPageFragment = function () {
     })
   );
 
-  pageFragment.querySelector('slot[name="grille"]').replaceWith(GrilleFilmsView.dom(M.catalogue.films));
+  pageFragment.querySelector('slot[name="grille"]').replaceWith(GrilleProduitsView.dom(M.catalogue.produits));
 
   pageFragment.querySelector('slot[name="pagination"]').replaceWith(
     PaginationView.dom(M.catalogue, { surPage: C.handler_changerPage })

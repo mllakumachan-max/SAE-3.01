@@ -1,7 +1,7 @@
 import { AuthData } from "../../data/auth.js";
 import { StatsData } from "../../data/stats.js";
 import { htmlToFragment } from "../../lib/utils.js";
-import { FormulaireConnexionView } from "../../ui/formulaire-connexion/index.js";
+import { FormulaireConnexionView } from "../../ui/formulaires/Admin/connexionAdmin/index.js";
 import { MessageView } from "../../ui/message/index.js";
 import { StatistiquesView } from "../../ui/statistiques/index.js";
 import template from "./template.html?raw";

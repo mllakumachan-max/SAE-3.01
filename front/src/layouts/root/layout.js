@@ -1,5 +1,5 @@
 import { htmlToFragment } from "../../lib/utils.js";
-import { HeaderView } from "../../ui/header/index.js";
+import { HeaderView } from "../../ui/header/Client/index.js";
 import template from "./template.html?raw";
 
 /**
