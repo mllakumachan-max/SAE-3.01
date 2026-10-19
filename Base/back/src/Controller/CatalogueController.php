@@ -28,7 +28,7 @@ final class CatalogueController
      * 'titre' », une chaîne constante : le tri ne trie plus rien, sans erreur.
      */
     private const TRIS = [
-        'titre' => 'produit.titre ASC',
+        'titre' => 'produit.nom ASC',
         'prix'  => 'produit.prix ASC',
     ];
 

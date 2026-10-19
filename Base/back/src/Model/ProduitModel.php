@@ -33,7 +33,7 @@ final class ProduitModel
     /**
      * Une page du catalogue.
      *
-     * @param string $ordre  Fragment SQL de tri, par exemple « produit.titre ASC ».
+     * @param string $ordre  Fragment SQL de tri, par exemple « produit.nom ASC ».
      *                       ATTENTION : ce fragment est inséré tel quel dans la
      *                       requête. Il ne doit JAMAIS provenir directement de
      *                       l'utilisateur — voir la liste blanche du contrôleur.
@@ -51,16 +51,13 @@ final class ProduitModel
                        produit.prix_unitaire,
                        produit.unite_prix,
                        produit.badge,
-                       categorie.libelle AS categorie
+                       categorie.libelle AS categorie,
+                       sous_categorie.libelle AS sous_categorie
                   FROM produit
             INNER JOIN categorie ON categorie.id = produit.categorie_id
+             LEFT JOIN categorie AS sous_categorie ON sous_categorie.id = produit.sous_categorie_id
               ORDER BY {$ordre}, produit.id
-                 LIMIT :limite OFFSET :decalage,
-                        categorie.libelle AS sous_categorie
-                    FROM produit
-              INNER JOIN sous_categorie ON categorie.id = produit.sous_categorie_id
-                ORDER BY {$ordre}, produit.id
-                   LIMIT :limite OFFSET :decalage";
+                 LIMIT :limite OFFSET :decalage";
 
         $requetePreparee = $this->pdo->prepare($sql);
 
