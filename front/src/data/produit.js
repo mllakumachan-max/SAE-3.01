@@ -29,11 +29,11 @@ let mettreEnForme = function (produit) {
  * La réponse contient les produits et les réglages réellement appliqués :
  * { produits, tri, parPage, page, pagesTotal, total }
  */
-ProduitData.fetchPage = async function (page, reglages, categorieId = null) {
+ProduitData.fetchPage = async function (page, reglages, categorieSlug = null) {
   let uri = `produits?page=${page}`;
 
-  if (categorieId !== null && categorieId !== undefined && categorieId !== "") {
-    uri += `&categorie=${encodeURIComponent(categorieId)}`;
+  if (categorieSlug !== null && categorieSlug !== undefined && categorieSlug !== "") {
+    uri += `&categorie=${encodeURIComponent(categorieSlug)}`;
   }
 
   if (reglages !== undefined) {

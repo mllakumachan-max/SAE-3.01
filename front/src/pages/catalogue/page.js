@@ -1,6 +1,8 @@
 import { ProduitData } from "../../data/produit.js";
+import { CategorieData } from "../../data/categorie.js";
 import { htmlToFragment } from "../../lib/utils.js";
 import { BarreOutilsView } from "../../ui/barre-outils/index.js";
+import { FilArianeView } from "../../ui/fil-ariane/index.js";
 import { GrilleProduitsView } from "../../ui/grille-produits/index.js";
 import { MessageView } from "../../ui/message/index.js";
 import { PaginationView } from "../../ui/pagination/index.js";
@@ -17,7 +19,8 @@ import template from "./template.html?raw";
 let M = {
   catalogue: null, // dernière réponse de l'API : produits et réglages appliqués
   message: null, // { type, texte }, ou null
-  categorieId: null,
+  categorieSlug: null,
+  categorieLibelle: null,
 };
 
 let C = {};
@@ -26,9 +29,9 @@ let C = {};
  * Demande une page du catalogue et range la réponse dans le modèle.
  * reglages ({ tri, parPage }) est facultatif, voir data/produit.js.
  */
-C.charger = async function (page, reglages, categorieId = M.categorieId) {
+C.charger = async function (page, reglages, categorieSlug = M.categorieSlug) {
   try {
-    M.catalogue = await ProduitData.fetchPage(page, reglages, categorieId);
+    M.catalogue = await ProduitData.fetchPage(page, reglages, categorieSlug);
     M.message = null;
   } catch (erreur) {
     M.catalogue = null;
@@ -38,24 +41,35 @@ C.charger = async function (page, reglages, categorieId = M.categorieId) {
 
 // Changer un réglage rend la page courante sans objet : on repart de la première.
 C.handler_changerTri = async function (tri) {
-  await C.charger(1, { tri, parPage: M.catalogue.parPage }, M.categorieId);
+  await C.charger(1, { tri, parPage: M.catalogue.parPage }, M.categorieSlug);
   V.rafraichir();
 };
 
 C.handler_changerParPage = async function (parPage) {
-  await C.charger(1, { tri: M.catalogue.tri, parPage }, M.categorieId);
+  await C.charger(1, { tri: M.catalogue.tri, parPage }, M.categorieSlug);
   V.rafraichir();
 };
 
 C.handler_changerPage = async function (page) {
-  await C.charger(page, { tri: M.catalogue.tri, parPage: M.catalogue.parPage }, M.categorieId);
+  await C.charger(page, { tri: M.catalogue.tri, parPage: M.catalogue.parPage }, M.categorieSlug);
   V.rafraichir();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-C.init = async function (categorieId = null) {
-  M.categorieId = categorieId !== null && categorieId !== undefined && categorieId !== "" ? Number(categorieId) : null;
-  await C.charger(1, undefined, M.categorieId);
+C.init = async function (categorieSlug = null) {
+  M.categorieSlug = categorieSlug !== null && categorieSlug !== undefined && categorieSlug !== "" ? categorieSlug : null;
+  M.categorieLibelle = null;
+
+  if (M.categorieSlug !== null) {
+    try {
+      let categories = await CategorieData.fetchAll();
+      M.categorieLibelle = categories.find((categorie) => categorie.slug === M.categorieSlug)?.libelle ?? M.categorieSlug;
+    } catch {
+      M.categorieLibelle = M.categorieSlug;
+    }
+  }
+
+  await C.charger(1, undefined, M.categorieSlug);
   return V.init();
 };
 
@@ -84,6 +98,10 @@ V.rafraichir = function () {
 V.createPageFragment = function () {
   let pageFragment = htmlToFragment(template);
 
+  let elementsAriane = M.categorieSlug === null
+    ? [{ libelle: "Catalogue" }]
+    : [{ libelle: "Catalogue", lien: "/" }, { libelle: M.categorieLibelle }];
+  pageFragment.querySelector('slot[name="ariane"]').replaceWith(FilArianeView.dom(elementsAriane));
   pageFragment.querySelector('slot[name="message"]').replaceWith(MessageView.dom(M.message));
 
   if (M.catalogue === null) {
@@ -111,5 +129,5 @@ V.createPageFragment = function () {
 };
 
 export function CataloguePage(params = {}) {
-  return C.init(params.id ?? params.categorie ?? null);
+  return C.init(params.slug ?? params.Slug ?? params.categorie ?? null);
 }

@@ -68,7 +68,7 @@ let HeaderClientView = {
   },
 
   creerLienCategorie: function (categorie) {
-    const chemin = `/categorie/${encodeURIComponent(categorie.id)}`;
+    const chemin = `/categorie/${encodeURIComponent(categorie.slug)}`;
     const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     const lien = categorie.lien || `${base}${chemin}`;
     const fragment = htmlToFragment(
