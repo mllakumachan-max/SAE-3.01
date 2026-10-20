@@ -1,129 +1,97 @@
 ---
 name: creer-page-mvc
-description: Crée une nouvelle page dans front/src/pages/ respectant le patron MVC local (M, C, V) et guide son enregistrement dans front/src/main.js.
+description: Crée une page SPA dans front/src/pages/ selon le patron MVC local (M, C, V), puis l'enregistre dans front/src/main.js. À utiliser pour tout nouvel écran complet.
 ---
 
-# Créer une page SPA (MVC local)
+# Créer une page (MVC local)
 
-Ce skill guide la création d'une page complète dans l'application front-end.
+Exemple suivi tout au long : une page `articles`, accessible sur `/articles`, qui affiche une liste et permet de retirer un élément.
 
-## 1. Création des fichiers de la page
+## Étape 1 : Créer le dossier
 
-Pour une page par exemple nommée `panier` dans `front/src/pages/panier/` :
+```
+front/src/pages/articles/
+├── template.html
+└── page.js
+```
 
-### Fichier `front/src/pages/panier/template.html`
+## Étape 2 : Écrire le squelette (`template.html`)
+
+Le template ne contient que la structure et les slots, jamais de données.
+
 ```html
-<section class="max-w-4xl mx-auto px-4 py-8">
-  <header class="mb-6">
-    <h1 class="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">Mon Panier</h1>
-  </header>
-
-  <slot name="message"></slot>
-  <slot name="contenu-panier"></slot>
-  <slot name="recapitulatif"></slot>
+<section class="mx-auto max-w-4xl px-4 py-8">
+  <h1 class="mb-6 text-24 font-bold text-text-primary">Articles</h1>
+  <slot name="liste"></slot>
 </section>
 ```
 
-### Fichier `front/src/pages/panier/page.js`
+## Étape 3 : Écrire la page (`page.js`)
+
+Le fichier est découpé en trois objets :
+
+- **M** : les données de la page.
+- **C** : charge les données et réagit aux actions.
+- **V** : construit le HTML à partir de M.
+
 ```javascript
 import { htmlToFragment } from "../../lib/utils.js";
-import { MessageView } from "../../ui/message/index.js";
+import { ArticleData } from "../../data/article.js";
+import { ListeArticlesView } from "../../ui/liste-articles/index.js";
 import template from "./template.html?raw";
 
-/**
- * Modèle local de la page.
- * Contient tout l'état de la page.
- */
-let M = {
-  articles: [],
-  message: null,
-};
+let M = { articles: [] };   // M : état de la page
 
-/**
- * Contrôleur local.
- * Gère le chargement, les actions utilisateur et déclenche les rafraîchissements.
- */
-let C = {};
-
+let C = {};                 // C : chargement et actions
 C.chargerDonnees = async function () {
-  try {
-    // Appel éventuel à une méthode de data/
-    M.message = null;
-  } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
-  }
+  M.articles = await ArticleData.fetchListe();
 };
-
-C.handler_supprimerArticle = function (id) {
-  M.articles = M.articles.filter((a) => a.id !== id);
+C.handler_retirer = function (id) {
+  M.articles = M.articles.filter((article) => article.id !== id);
   V.rafraichir();
 };
-
 C.init = async function () {
   await C.chargerDonnees();
   return V.init();
 };
 
-/**
- * Vue locale.
- * Reconstruit la page à partir du modèle M.
- */
-let V = {};
-
-V.racine = null;
-
+let V = { racine: null };   // V : construction du DOM
 V.init = function () {
   let fragment = V.createPageFragment();
   V.racine = fragment.firstElementChild;
   return fragment;
 };
-
 V.rafraichir = function () {
   let fragment = V.createPageFragment();
   let nouvelleRacine = fragment.firstElementChild;
   V.racine.replaceWith(fragment);
   V.racine = nouvelleRacine;
 };
-
 V.createPageFragment = function () {
   let pageFragment = htmlToFragment(template);
-
-  // Remplacement du message
-  pageFragment.querySelector('slot[name="message"]').replaceWith(
-    MessageView.dom(M.message)
+  pageFragment.querySelector('slot[name="liste"]').replaceWith(
+    ListeArticlesView.dom(M.articles, { surRetrait: C.handler_retirer })
   );
-
-  // Remplacement des autres slots avec des composants UI...
-
   return pageFragment;
 };
 
-/**
- * Fonction exportée pour le routeur.
- */
-export function PanierPage() {
+export function ArticlesPage() {   // fonction lue par le routeur
   return C.init();
 }
 ```
 
-## 2. Enregistrement de la route dans `front/src/main.js`
+Règle : les données viennent de `data/`, jamais d'un `fetch()` dans la page.
 
-Importer la page et ajouter la route avec le routeur de l'application :
+## Étape 4 : Enregistrer la route (`front/src/main.js`)
 
 ```javascript
-import { PanierPage } from "./pages/panier/page.js";
+import { ArticlesPage } from "./pages/articles/page.js";
 
-// Dans la section des routes :
-router.addRoute("/panier", PanierPage);
+router.addRoute("/articles", ArticlesPage);
 ```
 
-Si la page prend un paramètre dynamique dans l'URL (ex: `/produit/:id`) :
-```javascript
-router.addRoute("/produit/:id", ProduitPage);
-```
-Dans `ProduitPage`, le paramètre est accessible via l'argument `params` :
-```javascript
-export function ProduitPage(params) {
-  return C.init(params.id);
-}
-```
+## Étape 5 : Vérifier
+
+- `page.js` contient `M`, `C`, `V` et exporte une fonction de page.
+- Aucun `fetch()` dans `page.js`, aucune valeur arbitraire dans le template.
+- `node .agents/skills/verifier-projet/scripts/check-projet.js .`

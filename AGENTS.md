@@ -1,128 +1,94 @@
-# SAÉ 3.01 | Intégrer/développer des interfaces au sein d’un SI — Click & Collect
+# AGENTS.md — SAÉ 3.01 | Click & Collect
 
-Tu es un développeur Full-stack. L'objectif de la SAÉ 3.01 est de concevoir et développer une application web de **Click & Collect** (catalogue de produits/articles, filtres et pagination, consultation détaillée d'un produit, panier client, authentification/session et espace d'administration).
+Application de Click & Collect : catalogue, filtres, pagination, fiche produit, panier, authentification et administration. Tu es développeur full-stack sur ce projet.
 
-Le projet s'appuie sur une **API REST en PHP (3 couches)**, une **base MariaDB* et une **application frontend SPA (Single Page Application)** modulaire propulsée par **Vite** et **Tailwind CSS v4**.
+## 1. Stack
 
----
+| Domaine   | Ressource                              | Rôle                               |
+|-----------|----------------------------------------|------------------------------------|
+| Base      | MariaDB (InnoDB, utf8mb4)              | Données, schéma `sae301.sql`       |
+| Back      | PHP 8+ (PDO, `strict_types`)           | API REST, JSON uniquement          |
+| Front     | JavaScript ES modules (sans framework) | SPA : routeur, pages, composants   |
+| Build     | Vite 8                                 | Dev, build, proxy vers l'API       |
+| Style     | Tailwind CSS v4 (`@tailwindcss/vite`)  | Classes utilitaires, thème sombre  |
+| Maquettes | Figma                                  | Wireframes et tokens de couleur    |
 
-## Architecture Générale
+Règles détaillées : `.agents/rules/`. Procédures : `.agents/skills/`.
+
+## 2. Arborescence
 
 ```
-SAÉ 3.01/
-├── sql/sae301.sql       -> Schéma MySQL et données initiales (InnoDB, utf8mb4)
-├── base
-│   ├── .htaccess            -> Route /api/... vers back/index.php, le reste vers front/dist/
-│   └── back/                -> API PHP REST (ne renvoie STRICTEMENT que du JSON)
-│       ├── config/config.php-> Configuration BDD et chemin du projet (cookies)
-│       ├── src/
-│       │   ├── Core/        -> Request, Response, Router, Database
-│       │   ├── Controller/  -> Contrôleurs (validation, listes blanches, cookies)
-│       │   ├── Model/       -> Modèles PDO (requêtes préparées, typage)
-│       │   └── routes.php   -> Déclaration des routes HTTP -> [Contrôleur, méthode]
-│       └── index.php        -> Point d'entrée unique, autoloader, session
-└── front/               -> Sources du front (Vite + Tailwind CSS v4)
-    ├── vite.config.js   -> Configuration BASE et proxy de développement vers l'API
-    └── src/
-        ├── main.js      -> Point d'entrée, déclaration des layouts et routes
-        ├── global.css   -> Tailwind CSS v4, thème sombre, utilitaires CSS
-        ├── icons.html   -> Sprite svg, icônes présentes sur le site web
-        ├── layouts/     -> Layouts structurels (RootLayout avec <slot>)
-        ├── pages/       -> Pages complètes avec architecture MVC LOCAL (M, C, V)
-        ├── ui/          -> Composants réutilisables (template.html?raw + index.js)
-        ├── data/        -> Couche d'accès à l'API (fetch, getRequest, postRequest)
-        ├── images/      -> Images du site rassemblées
-        └── lib/         -> router.js, api-request.js, utils.js, format.js, theme.js
+SAE-3.01-US-DEC-a/
+├── sae301.sql          -> Schéma et données MariaDB
+├── Base/               -> Dossier déployé sur le serveur
+│   ├── .htaccess       -> /api/... vers back/index.php, le reste vers front/dist/
+│   └── back/           -> API PHP (config/, index.php, src/)
+└── front/              -> Sources Vite (front/dist/ est copié dans Base/)
+    └── src/            -> main.js, global.css, icons.html, layouts/, pages/, ui/, data/, lib/, images/
 ```
 
----
+## 3. Frontend
 
-## 1. Frontend : Organisation et Conventions
-Utilisation des wireframes et variables Figma pour concevoir l'interface du site : https://www.figma.com/design/LZ0Y4q1dDu0P1iOr59UFWb/SA%C3%89-3.01---Ana%C3%AFs-Ribatet?node-id=31-5663&p=f&t=HyP0LBW0U1f51a9k-0
+### A. Librairies (`front/src/lib/`)
 
-### A. Pages et MVC Local (`front/src/pages/<nom>/page.js`)
-Chaque page dynamique est un module indépendant respectant le découpage **M / C / V local** :
-- **`M` (Modèle local)** : Contient l'état réactif de la page (données de l'API, message d'alerte, valeurs de formulaire en cours de saisie).
-- **`C` (Contrôleur local)** : Contient la logique d'action, les appels asynchrones à la couche `data/`, et les gestionnaires d'événements (`handler_<action>`). `C.init()` est la fonction d'initialisation appelée par le routeur.
-- **`V` (Vue locale)** : Construit le `DocumentFragment` de la page à partir du modèle `M`.
-  - Reconstruit intégralement la page lors d'un changement d'état via `V.rafraichir()`.
-  - Remplace les `<slot name="...">` du template de page par les fragments des composants `ui/`.
-- **Export** : Chaque page exporte une fonction d'entrée (ex: `export function CataloguePage() { return C.init(); }`).
+- `router.js` : routes, layouts, navigation sans rechargement. Liens : `<a href="/admin" data-link>`, sans le chemin du projet.
+- `api-request.js` : `getRequest`, `postRequest`, `ErreurApi` (porte le statut HTTP).
+- `utils.js` : `genericRenderer` (remplace `{{cle}}` en échappant), `htmlToFragment`.
+- `format.js` : mise en forme (`formaterDuree`, `formaterNote`, `teinteDepuisTexte`).
+- `images.js` : `urlImage(chemin)` convertit un chemin de la base en adresse réelle. Jamais de chemin d'image en dur.
+- `theme.js` : `basculerTheme()` pose `theme-dark` sur `<html>`, choix mémorisé en `localStorage`.
 
-### B. Composants d'Interface (`front/src/ui/<nom>/`)
-Chaque composant se compose de :
-- `template.html` : Structure HTML avec classes Tailwind. Contient des marqueurs `{{cle}}` pour le texte et des `<slot name="...">` pour les sous-composants.
-- `index.js` :
-  - Importe le template brut : `import template from "./template.html?raw";`.
-  - `html(data)` : Produit la chaîne HTML via `genericRenderer(template, data)` (les valeurs sont automatiquement échappées).
-  - `dom(data, actions)` : Convertit le HTML en `DocumentFragment` (via `htmlToFragment`), branche les écouteurs d'événements (`addEventListener`), et appelle les callbacks reçues dans `actions` (ex: `actions.surAjouterPanier(id)`).
-  - **Règle absolue** : Les composants ne décident d'aucune règle métier et n'appellent jamais l'API directement.
+### B. Layouts (`front/src/layouts/`)
 
-### C. Utilisation Dynamique de Tailwind CSS v4
-Toujours utiliser des variables sémantiques.
+Enveloppe commune d'un groupe de pages : `template.html` (slots `header` et sans nom pour la page), `layout.js` (remplit `header`). Choisi par le plus long préfixe de `main.js`.
 
-Pour gérer du **style dynamique** avec des variables :
-1. **Variables CSS dynamiques** :
-   Injecter la variable dans le HTML via `class="text- + variable; "` :
-   ```html
-   <div class="bg-accent text-white p-4">
-   ```
-2. **Utilitaires CSS personnalisés dans `front/src/global.css`** :
-   Déclarer des `@utility` exploitant des variables CSS :
-   ```css
-   @utility badge-dynamique {
-     background-color: var(--badge-bg, var(--color-zinc-100));
-     color: var(--badge-text, var(--color-zinc-800));
-   }
-   ```
-3. **Dictionnaire de correspondance (pour un ensemble défini d'états)** :
-   Mapper les états ou variantes vers des classes complètes :
-   ```javascript
-   const CLASSES_STATUT = {
-     disponible: "bg-emerald-100 text-emerald-800 border-emerald-300",
-     rupture: "bg-rose-100 text-rose-800 border-rose-300",
-     precommande: "bg-amber-100 text-amber-800 border-amber-300",
-   };
-   ```
-4. **Thème sombre** :
-   Géré par la classe `.theme-dark` posée sur `<html>`. Utiliser systématiquement le modificateur `dark:...` (ex: `bg-white dark:bg-zinc-950`).
+### C. Pages en MVC local (`pages/<nom>/page.js`)
 
----
+- **M** : état de la page (données API, message, saisie en cours).
+- **C** : traitements, appels à `data/`, gestionnaires `handler_<action>`. `C.init()` est appelé par le routeur.
+- **V** : construit le `DocumentFragment` depuis `M`. `V.rafraichir()` reconstruit la page à chaque changement d'état.
 
-## 2. Backend : Organisation et Sécurité (`back/`)
+### D. Composants (`ui/<nom>/`)
 
-1. **3 Couches Strictes** :
-  - `Core/` : Moteur de requêtes, réponses JSON, routeur et connexion PDO.
-  - `Model/` : Reçoit `PDO`, prépare les requêtes avec `bindValue(..., PDO::PARAM_...)`, retourne des tableaux associatifs sans HTML.
-  - `Controller/` : Reçoit `Request`, valide les paramètres, applique les cookies (`HttpOnly`, `SameSite=Lax`, `Secure`), gère la session, et renvoie la réponse via `Response::json($data, $code)`.
-2. **Protection SQL et Listes Blanches** :
-  - Toute clause de tri dynamique (`ORDER BY`) doit obligatoirement être validée par une liste blanche stricte définie dans une constante `private const` du contrôleur.
-  - Aucune variable utilisateur n'est directement injectée dans une chaîne SQL.
-3. **Table des Routes** :
-  - Toute nouvelle route API est enregistrée dans `back/src/routes.php`.
-  - Tout contrôleur nécessaire doit être instancié dans `back/index.php`.
-4. **Table SQL** :
-  - Toute nouvelle table ajoutée dans `sae301.sql`
+- `template.html` : HTML, classes Tailwind, marqueurs `{{cle}}` et `<slot name="…">`.
+- `index.js` : expose `html(data)` et `dom(data, actions)`. Les actions sont des callbacks (`actions.surAjouterPanier(id)`).
+- Un composant ne prend aucune décision métier et n'appelle jamais l'API.
 
----
+### E. Tailwind CSS v4
 
-## 3. Synchronisation & Commandes de Développement
+- Classes écrites dynamiquement : `"text-" + couleur`, jamais `"text-red-700"`.
+- Variables sémantiques (`bg-surface-default`, `text-text-primary`) définies dans `@theme` de `global.css`.
+- Style dynamique : `@utility` dans `global.css`, ou dictionnaire d'états (`CLASSES_STATUT`).
+- Thème sombre : préfixe `dark:`, activé par `theme-dark` sur `<html>`.
 
-- **Chemin du projet** :
-  - `front/vite.config.js` -> `const BASE = "/~votre_login/Base/";`
-  - `back/config/config.php` -> `'chemin' => '/~votre_login/Base/',`
-  Ces deux valeurs doivent TOUJOURS correspondre au dossier de déploiement réel.
-- **Lancer le serveur de développement Front** :
-  ```bash
-  cd front
-  npm run dev
-  ```
-- **Compiler pour la production** :
-  ```bash
-  cd front
-  npm run build
-  ```
-- **Contrôler la qualité et cohérence du projet** :
-  ```bash
-  node .agents/skills/verifier-projet/scripts/check-projet.js .
-  ```
+### F. Figma
+
+- Wireframes (à consulter avant de coder une page ou un composant) : https://www.figma.com/design/LZ0Y4q1dDu0P1iOr59UFWb/SA%C3%89-3.01---Ana%C3%AFs-Ribatet?node-id=31-5663&p=f&t=HyP0LBW0U1f51a9k-0
+- Les primitives `--color-palette-*` de `global.css` reprennent les tokens Figma. Une nouvelle couleur se crée dans Figma, puis s'ajoute à `@theme`.
+
+## 4. Backend
+
+### A. Couches
+
+- **Core/** : `Response::json($donnees, $code)`, `Router`, `Database::connexion()` (PDO unique, mode exception).
+- **Model/** : reçoit `PDO`, `prepare()` + `bindValue(..., PDO::PARAM_...)`, renvoie des tableaux associatifs.
+- **Controller/** : valide, pose les cookies (`httponly`, `secure`, `samesite => 'Lax'`), gère la session, renvoie `Response::json()`.
+
+### B. Sécurité et routes
+
+- Tout `ORDER BY` ou filtre dynamique passe par une constante `private const` de liste blanche (`TRIS`, `PAR_PAGE_AUTORISES`). Aucune donnée utilisateur n'entre dans une chaîne SQL.
+- Route : `'METHODE /api/chemin' => [Controleur::class, 'methode']` dans `routes.php`. Contrôleur : l'instancier dans `index.php`.
+- Chaque fichier PHP commence par `declare(strict_types=1);`, puis respecte l'espace de noms `App\…`.
+
+### C. Base de données (MariaDB)
+
+Créée en important `sae301.sql` ; connexion dans `config/config.php`.
+
+- Clés étrangères en `ON DELETE RESTRICT`. Les `DECIMAL` arrivent en texte : conversion dans `front/src/data/`.
+- Conventions : InnoDB, utf8mb4, clés nommées (`uq_`, `idx_`, `fk_`). Skills : `creer-table-sql`, `modifier-table-sql`.
+
+## 5. Commandes
+
+- **Chemin du projet** : `BASE` dans `front/vite.config.js` et `'chemin'` dans `config.php` doivent être identiques (`/~ribatet1/SAE-3.01/Base/`).
+- **Développement** : `cd front && npm install && npm run dev`. **Production** : `npm run build`, puis copier `front/dist/` dans `Base/`.
+- **Contrôle** : `node .agents/skills/verifier-projet/scripts/check-projet.js .`

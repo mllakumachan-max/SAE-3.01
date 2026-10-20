@@ -1,35 +1,32 @@
 ---
 name: ajouter-route-api
-description: Ajoute une route à l'API PHP (Modèle, Contrôleur, routes.php) et son point d'accès côté frontend (front/src/data/).
+description: Ajoute un point d'accès à l'API PHP (modèle, contrôleur, routes.php) puis son appel depuis front/src/data/. À utiliser quand une page a besoin d'une nouvelle donnée du serveur.
 ---
 
-# Ajouter une route à l'API PHP
+# Ajouter une route à l'API
 
-Ce skill décrit les étapes pour exposer et consommer un nouveau point de terminaison d'API REST.
+Exemple suivi tout au long : une route qui renvoie **un article** à partir de son identifiant, `GET /api/article?id=3`.
 
-## 1. Couche Données / Modèle (`back/src/Model/`)
+## Étape 1 : Écrire la requête (`back/src/Model/`)
 
-Ajouter la méthode dans le modèle approprié (ex: `ProduitModel.php` ou `FilmModel.php`) :
+Le modèle parle uniquement à la base de données. Il renvoie un tableau, ou `null` si rien n'est trouvé.
 
 ```php
 public function trouverParId(int $id): ?array
 {
-    $requete = $this->pdo->prepare(
-        'SELECT id, titre, annee, note_moyenne, duree_minutes 
-           FROM film 
-          WHERE id = :id'
-    );
+    $requete = $this->pdo->prepare('SELECT id, titre FROM ARTICLE WHERE id = :id');
     $requete->bindValue(':id', $id, PDO::PARAM_INT);
     $requete->execute();
 
-    $resultat = $requete->fetch();
-    return $resultat ?: null;
+    return $requete->fetch() ?: null;
 }
 ```
 
-## 2. Couche Contrôleur (`back/src/Controller/`)
+Règle : toujours `prepare()` et `bindValue()`. Ne jamais coller une variable dans la chaîne SQL.
 
-Ajouter l'action dans le contrôleur avec validation stricte :
+## Étape 2 : Vérifier et répondre (`back/src/Controller/`)
+
+Le contrôleur valide la donnée reçue, appelle le modèle, puis répond.
 
 ```php
 public function detail(Request $requete): void
@@ -37,46 +34,51 @@ public function detail(Request $requete): void
     $id = (int) ($requete->parametre('id') ?? 0);
 
     if ($id <= 0) {
-        Response::json(['erreur' => 'Identifiant de produit invalide.'], 400);
+        Response::json(['erreur' => 'Identifiant invalide.'], 400);
         return;
     }
 
-    $element = $this->modele->trouverParId($id);
+    $article = $this->modele->trouverParId($id);
 
-    if ($element === null) {
-        Response::json(['erreur' => 'Produit non trouvé.'], 404);
+    if ($article === null) {
+        Response::json(['erreur' => 'Article introuvable.'], 404);
         return;
     }
 
-    Response::json($element);
+    Response::json($article);
 }
 ```
 
-## 3. Déclaration de la Route (`back/src/routes.php`)
+Codes utilisés : `200` réussite, `400` donnée invalide, `404` élément absent.
 
-Ajouter l'association méthode HTTP + chemin vers le contrôleur :
+## Étape 3 : Déclarer la route (`back/src/routes.php`)
 
 ```php
-return [
-    'GET /api/films'      => [CatalogueController::class, 'index'],
-    'GET /api/film'       => [CatalogueController::class, 'detail'],
-    // ...
-];
+'GET /api/article' => [CatalogueController::class, 'detail'],
 ```
-*(Si un nouveau contrôleur a été créé, veiller à l'instancier dans le tableau `$controleurs` de `back/index.php`).*
 
-## 4. Consommation côté Frontend (`front/src/data/`)
+Si le contrôleur est nouveau, l'ajouter aussi au tableau `$controleurs` de `back/index.php`.
 
-Dans le module correspondant (ex: `front/src/data/produit.js`) :
+## Étape 4 : Appeler depuis le front (`front/src/data/`)
+
+Ajouter la méthode au module de la ressource, ici `article.js` :
 
 ```javascript
 import { getRequest } from "../lib/api-request.js";
 
-let ProduitData = {};
+let ArticleData = {};
 
-ProduitData.fetchDetail = async function (id) {
-  return getRequest(`film?id=${encodeURIComponent(id)}`);
+ArticleData.fetchDetail = function (id) {
+  return getRequest(`article?id=${encodeURIComponent(id)}`);
 };
 
-export { ProduitData };
+export { ArticleData };
 ```
+
+Une page appelle `ArticleData`, jamais `fetch()` directement.
+
+## Étape 5 : Vérifier
+
+1. Ouvrir `/api/article?id=3` dans le navigateur : la réponse est du JSON.
+2. Tester `/api/article?id=999` : la réponse est `404`.
+3. Lancer `node .agents/skills/verifier-projet/scripts/check-projet.js .`
