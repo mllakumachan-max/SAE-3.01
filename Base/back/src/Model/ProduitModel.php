@@ -23,11 +23,21 @@ final class ProduitModel
     }
 
     /**
-     * Nombre de produits du catalogue.
+     * Nombre de produits du catalogue avec un filtre par catégorie.
      */
-    public function compter(): int
+    public function compter(?int $categorieId = null): int
     {
-        return (int) $this->pdo->query('SELECT COUNT(*) FROM produit')->fetchColumn();
+        if ($categorieId === null) {
+            return (int) $this->pdo->query('SELECT COUNT(*) FROM produit')->fetchColumn();
+        }
+
+        $requetePreparee = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM produit WHERE produit.categorie_id = :categorie'
+        );
+        $requetePreparee->bindValue(':categorie', $categorieId, PDO::PARAM_INT);
+        $requetePreparee->execute();
+
+        return (int) $requetePreparee->fetchColumn();
     }
 
     /**
@@ -39,9 +49,12 @@ final class ProduitModel
      *                       l'utilisateur — voir la liste blanche du contrôleur.
      * @param int    $limite Nombre de produits à renvoyer.
      * @param int    $decalage Nombre de produits à sauter (pagination).
+     * @param int|null $categorieId Filtre par catégorie, ou null pour tout le catalogue.
      */
-    public function lister(string $ordre, int $limite, int $decalage): array
+    public function lister(string $ordre, int $limite, int $decalage, ?int $categorieId = null): array
     {
+        $filtre = $categorieId === null ? '' : 'WHERE produit.categorie_id = :categorie';
+
         $sql = "SELECT produit.id,
                        produit.reference,
                        produit.nom,
@@ -65,6 +78,7 @@ final class ProduitModel
                   ORDER BY g.ordre ASC
                   LIMIT 1
              )
+                                 {$filtre}
               ORDER BY {$ordre}, produit.id
                  LIMIT :limite OFFSET :decalage";
 
@@ -73,6 +87,10 @@ final class ProduitModel
         // Les valeurs, elles, sont bien liées : c'est le rôle des paramètres.
         $requetePreparee->bindValue(':limite',   $limite,   PDO::PARAM_INT);
         $requetePreparee->bindValue(':decalage', $decalage, PDO::PARAM_INT);
+
+        if ($categorieId !== null) {
+            $requetePreparee->bindValue(':categorie', $categorieId, PDO::PARAM_INT);
+        }
 
         $requetePreparee->execute();
 

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Core\Request;
 use App\Core\Response;
+use App\Model\CategorieModel;
 use App\Model\ProduitModel;
 
 /**
@@ -28,8 +29,8 @@ final class CatalogueController
      * 'titre' », une chaîne constante : le tri ne trie plus rien, sans erreur.
      */
     private const TRIS = [
-        'nom'  => 'produit.nom ASC',
-        'prix' => 'produit.prix ASC',
+        'titre' => 'produit.nom ASC',
+        'prix'  => 'produit.prix ASC',
     ];
 
     private const PAR_PAGE_AUTORISES = [12, 24, 48];
@@ -37,12 +38,16 @@ final class CatalogueController
     /** Le modèle qui interroge la base, fourni à la construction. */
     private ProduitModel $produits;
 
+    /** Le modèle qui résout le slug de catégorie fourni par la navigation. */
+    private CategorieModel $categories;
+
     /** Chemin du projet sur le serveur, celui des cookies (voir config.php). */
     private string $chemin;
 
-    public function __construct(ProduitModel $produits, string $chemin)
+    public function __construct(ProduitModel $produits, CategorieModel $categories, string $chemin)
     {
         $this->produits = $produits;
+        $this->categories = $categories;
         $this->chemin = $chemin;
     }
 
@@ -80,15 +85,22 @@ final class CatalogueController
         $parPage = in_array($parPage, self::PAR_PAGE_AUTORISES, true) ? $parPage : 12;
         $ordre   = self::TRIS[$tri];
 
-        $total       = $this->produits->compter();
+        $slugCategorie = $requete->parametre('categorie');
+        $categorie = $slugCategorie === null
+            ? null
+            : $this->categories->trouverRacineParSlug($slugCategorie);
+        $categorieId = $slugCategorie === null ? null : ($categorie['id'] ?? 0);
+
+        $total       = $this->produits->compter($categorieId);
         $pagesTotal  = max(1, (int) ceil($total / $parPage));
         $page        = (int) ($requete->parametre('page', '1') ?? '1');
         $page        = max(1, min($page, $pagesTotal));
 
-        $produits = $this->produits->lister($ordre, $parPage, ($page - 1) * $parPage);
+        $produits = $this->produits->lister($ordre, $parPage, ($page - 1) * $parPage, $categorieId);
 
         Response::json([
             'produits' => $produits,
+            'categorie' => $categorie,
             // Le front n'a pas besoin de lire les cookies : l'API lui rappelle
             // les réglages effectivement appliqués.
             'tri'        => $tri,

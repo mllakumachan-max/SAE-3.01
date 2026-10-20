@@ -62,7 +62,11 @@ try {
     // Les dépendances sont créées explicitement : le modèle reçoit la connexion,
     // le contrôleur reçoit le modèle. Aucune magie, tout est lisible ici.
     $controleurs = [
-        CatalogueController::class => new CatalogueController(new ProduitModel($pdo), $config['chemin']),
+        CatalogueController::class => new CatalogueController(
+            new ProduitModel($pdo),
+            new CategorieModel($pdo),
+            $config['chemin']
+        ),
         CategorieController::class => new CategorieController(new CategorieModel($pdo)),
         AuthController::class      => new AuthController(),
         //StatsController::class     => new StatsController(new ProduitModel($pdo)),

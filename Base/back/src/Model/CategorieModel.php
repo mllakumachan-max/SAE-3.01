@@ -53,4 +53,30 @@ final class CategorieModel
             $lignes
         );
     }
+
+    /**
+     * Trouve une catégorie racine par son slug.
+     */
+    public function trouverRacineParSlug(string $slug): ?array
+    {
+        $sql = $this->pdo->prepare(
+            'SELECT id, libelle, slug
+            FROM categorie
+            WHERE slug = :slug AND parent_id IS NULL'
+        );
+        $sql->bindValue(':slug', $slug, PDO::PARAM_STR);
+        $sql->execute();
+
+        $ligne = $sql->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return [
+            'id'      => (int) $ligne['id'],
+            'libelle' => $ligne['libelle'],
+            'slug'    => $ligne['slug'],
+        ];
+    }
 }

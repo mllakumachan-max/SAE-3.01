@@ -2,7 +2,7 @@
 
 Tu es un développeur Full-stack. L'objectif de la SAÉ 3.01 est de concevoir et développer une application web de **Click & Collect** (catalogue de produits/articles, filtres et pagination, consultation détaillée d'un produit, panier client, authentification/session et espace d'administration).
 
-Le projet s'appuie sur une **API REST en PHP (3 couches)** et une **application frontend SPA (Single Page Application)** modulaire propulsée par **Vite** et **Tailwind CSS v4**.
+Le projet s'appuie sur une **API REST en PHP (3 couches)**, une **base MariaDB* et une **application frontend SPA (Single Page Application)** modulaire propulsée par **Vite** et **Tailwind CSS v4**.
 
 ---
 
@@ -38,6 +38,7 @@ SAÉ 3.01/
 ---
 
 ## 1. Frontend : Organisation et Conventions
+Utilisation des wireframes et variables Figma pour concevoir l'interface du site : https://www.figma.com/design/LZ0Y4q1dDu0P1iOr59UFWb/SA%C3%89-3.01---Ana%C3%AFs-Ribatet?node-id=31-5663&p=f&t=HyP0LBW0U1f51a9k-0
 
 ### A. Pages et MVC Local (`front/src/pages/<nom>/page.js`)
 Chaque page dynamique est un module indépendant respectant le découpage **M / C / V local** :
@@ -57,17 +58,17 @@ Chaque composant se compose de :
   - `dom(data, actions)` : Convertit le HTML en `DocumentFragment` (via `htmlToFragment`), branche les écouteurs d'événements (`addEventListener`), et appelle les callbacks reçues dans `actions` (ex: `actions.surAjouterPanier(id)`).
   - **Règle absolue** : Les composants ne décident d'aucune règle métier et n'appellent jamais l'API directement.
 
-### C. Style et Utilisation Dynamique de Tailwind CSS v4
-Tailwind CSS extrait statiquement les classes à la compilation. **Ne jamais générer de noms de classes par concaténation de chaînes** (ex: `"text-" + couleur` ne fonctionne pas).
+### C. Utilisation Dynamique de Tailwind CSS v4
+Toujours utiliser des variables sémantiques.
 
 Pour gérer du **style dynamique** avec des variables :
-1. **Variables CSS en style en ligne (recommandé pour valeurs arbitraires/dynamiques)** :
-   Injecter la variable dans le HTML via `style="--clr-produit: {{couleur}}; "` et cibler cette variable avec une classe arbitraire Tailwind :
+1. **Variables CSS dynamiques** :
+   Injecter la variable dans le HTML via `class="text- + variable; "` :
    ```html
-   <div style="--accent: {{couleur}};" class="bg-[var(--accent)] text-white p-4">
+   <div class="bg-accent text-white p-4">
    ```
 2. **Utilitaires CSS personnalisés dans `front/src/global.css`** :
-   Déclarer des `@utility` exploitant des variables CSS, comme déjà fait pour le dégradé `--teinte` :
+   Déclarer des `@utility` exploitant des variables CSS :
    ```css
    @utility badge-dynamique {
      background-color: var(--badge-bg, var(--color-zinc-100));
@@ -91,15 +92,17 @@ Pour gérer du **style dynamique** avec des variables :
 ## 2. Backend : Organisation et Sécurité (`back/`)
 
 1. **3 Couches Strictes** :
-   - `Core/` : Moteur de requêtes, réponses JSON, routeur et connexion PDO.
-   - `Model/` : Reçoit `PDO`, prépare les requêtes avec `bindValue(..., PDO::PARAM_...)`, retourne des tableaux associatifs sans HTML.
-   - `Controller/` : Reçoit `Request`, valide les paramètres, applique les cookies (`HttpOnly`, `SameSite=Lax`, `Secure`), gère la session, et renvoie la réponse via `Response::json($data, $code)`.
+  - `Core/` : Moteur de requêtes, réponses JSON, routeur et connexion PDO.
+  - `Model/` : Reçoit `PDO`, prépare les requêtes avec `bindValue(..., PDO::PARAM_...)`, retourne des tableaux associatifs sans HTML.
+  - `Controller/` : Reçoit `Request`, valide les paramètres, applique les cookies (`HttpOnly`, `SameSite=Lax`, `Secure`), gère la session, et renvoie la réponse via `Response::json($data, $code)`.
 2. **Protection SQL et Listes Blanches** :
-   - Toute clause de tri dynamique (`ORDER BY`) doit obligatoirement être validée par une liste blanche stricte définie dans une constante `private const` du contrôleur.
-   - Aucune variable utilisateur n'est directement injectée dans une chaîne SQL.
+  - Toute clause de tri dynamique (`ORDER BY`) doit obligatoirement être validée par une liste blanche stricte définie dans une constante `private const` du contrôleur.
+  - Aucune variable utilisateur n'est directement injectée dans une chaîne SQL.
 3. **Table des Routes** :
-   - Toute nouvelle route API est enregistrée dans `back/src/routes.php`.
-   - Tout contrôleur nécessaire doit être instancié dans `back/index.php`.
+  - Toute nouvelle route API est enregistrée dans `back/src/routes.php`.
+  - Tout contrôleur nécessaire doit être instancié dans `back/index.php`.
+4. **Table SQL** :
+  - Toute nouvelle table ajoutée dans `sae301.sql`
 
 ---
 
@@ -123,11 +126,3 @@ Pour gérer du **style dynamique** avec des variables :
   ```bash
   node .agents/skills/verifier-projet/scripts/check-projet.js .
   ```
-
-## 4. Skills disponibles
-
-- `creer-table-sql` : ajouter une table dans `sql/sae301.sql`
-- `ajouter-route-api` : ajouter une route (modèle, contrôleur, routes.php)
-- `creer-page-mvc` : créer une page front
-- `creer-composant-ui` : créer un composant front
-- `verifier-projet` : contrôler la cohérence du projet

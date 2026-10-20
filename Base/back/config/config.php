@@ -19,7 +19,7 @@ return [
     // des cookies (préférences et session) : avec « / », ils partiraient vers
     // les espaces de tous les autres utilisateurs du serveur.
     // Il doit être identique à BASE dans front/vite.config.js.
-    'chemin' => '/~ribatet1/SAE301-Starter/Base/',
+    'chemin' => '/~ribatet1/SAE-3.01/Base/',
 
     'bdd' => [
         'hote'        => 'localhost',

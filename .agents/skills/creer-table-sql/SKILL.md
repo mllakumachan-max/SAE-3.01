@@ -48,8 +48,8 @@ CREATE TABLE nom_table (
 
 | Élément | Convention | Exemple |
 |---|---|---|
-| Table | singulier, minuscules, sans accent | `produit`, `galerie` |
-| Clé primaire | `id` | `id` |
+| Table | singulier, majuscules, sans accent | `PRODUIT`, `GALERIE` |
+| Clé primaire | `id_<table>` | `id_produit` |
 | Clé unique | `uq_<table>_<colonne>` | `uq_produit_reference` |
 | Index | `idx_<table>_<colonne>` | `idx_produit_prix` |
 | Clé étrangère | `fk_<table>_<colonne>` | `fk_produit_categorie` |
@@ -90,5 +90,4 @@ Avant de terminer :
 
 ## 8. Ce que ce skill ne fait pas
 
-- Il ne crée pas le modèle PHP correspondant. Utiliser le skill `creer-modele-php` (à créer).
 - Il ne modifie pas une table existante sans accord explicite : une modification de schéma sur des données réelles doit être décidée par l'utilisateur.
