@@ -29,15 +29,15 @@ final class CategorieModel
      */
     public function listerRacines(): array
     {
-        $sql = 'SELECT categorie.id,
-                       categorie.libelle,
-                       categorie.slug,
-                       COUNT(produit.id) AS nb_produits
-                  FROM categorie
-             LEFT JOIN produit ON produit.categorie_id = categorie.id
-                 WHERE categorie.parent_id IS NULL
-              GROUP BY categorie.id, categorie.libelle, categorie.slug
-              ORDER BY categorie.id ASC';
+        $sql = 'SELECT CATEGORIE.id,
+                       CATEGORIE.libelle,
+                       CATEGORIE.slug,
+                       COUNT(PRODUIT.id) AS nb_produits
+                  FROM CATEGORIE
+             LEFT JOIN PRODUIT ON PRODUIT.categorie_id = CATEGORIE.id
+                 WHERE CATEGORIE.parent_id IS NULL
+              GROUP BY CATEGORIE.id, CATEGORIE.libelle, CATEGORIE.slug
+              ORDER BY CATEGORIE.id ASC';
 
         $lignes = $this->pdo->query($sql)->fetchAll();
 
@@ -61,7 +61,7 @@ final class CategorieModel
     {
         $sql = $this->pdo->prepare(
             'SELECT id, libelle, slug
-            FROM categorie
+            FROM CATEGORIE
             WHERE slug = :slug AND parent_id IS NULL'
         );
         $sql->bindValue(':slug', $slug, PDO::PARAM_STR);

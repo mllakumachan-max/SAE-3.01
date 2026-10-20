@@ -24,7 +24,7 @@ CREATE TABLE CATEGORIE (
     KEY idx_categorie_parent (parent_id),
 
     CONSTRAINT fk_categorie_parent
-        FOREIGN KEY (parent_id) REFERENCES categorie (id)
+        FOREIGN KEY (parent_id) REFERENCES CATEGORIE (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
@@ -41,7 +41,7 @@ CREATE TABLE PRODUIT (
     marque              VARCHAR(80)       NULL,
     format              VARCHAR(120)      NULL,
     prix                DECIMAL(6,2)      NOT NULL,
-    prix_unitaire       DECIMAL(8,2)      NULL,
+    prix_unitaire       DECIMAL(6,2)      NULL,
     unite_prix          VARCHAR(10)       NULL,
     badge               VARCHAR(40)       NULL,
     categorie_id        TINYINT UNSIGNED  NOT NULL,
@@ -55,11 +55,11 @@ CREATE TABLE PRODUIT (
     KEY idx_produit_sous_categorie_id (sous_categorie_id),
 
     CONSTRAINT fk_produit_categorie
-        FOREIGN KEY (categorie_id) REFERENCES categorie (id)
+        FOREIGN KEY (categorie_id) REFERENCES CATEGORIE (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
     CONSTRAINT fk_produit_sous_categorie_id
-        FOREIGN KEY (sous_categorie_id) REFERENCES categorie (id)
+        FOREIGN KEY (sous_categorie_id) REFERENCES CATEGORIE (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
@@ -81,7 +81,7 @@ CREATE TABLE GALERIE (
     KEY idx_galerie_produit (produit_id),
 
     CONSTRAINT fk_galerie_produit
-        FOREIGN KEY (produit_id) REFERENCES produit (id)
+        FOREIGN KEY (produit_id) REFERENCES PRODUIT (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE = InnoDB

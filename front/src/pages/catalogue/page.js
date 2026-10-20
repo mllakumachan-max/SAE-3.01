@@ -1,5 +1,4 @@
 import { ProduitData } from "../../data/produit.js";
-import { CategorieData } from "../../data/categorie.js";
 import { htmlToFragment } from "../../lib/utils.js";
 import { BarreOutilsView } from "../../ui/barre-outils/index.js";
 import { FilArianeView } from "../../ui/fil-ariane/index.js";
@@ -58,18 +57,9 @@ C.handler_changerPage = async function (page) {
 
 C.init = async function (categorieSlug = null) {
   M.categorieSlug = categorieSlug !== null && categorieSlug !== undefined && categorieSlug !== "" ? categorieSlug : null;
-  M.categorieLibelle = null;
-
-  if (M.categorieSlug !== null) {
-    try {
-      let categories = await CategorieData.fetchAll();
-      M.categorieLibelle = categories.find((categorie) => categorie.slug === M.categorieSlug)?.libelle ?? M.categorieSlug;
-    } catch {
-      M.categorieLibelle = M.categorieSlug;
-    }
-  }
 
   await C.charger(1, undefined, M.categorieSlug);
+  M.categorieLibelle = M.catalogue?.categorie?.libelle ?? M.categorieSlug;
   return V.init();
 };
 

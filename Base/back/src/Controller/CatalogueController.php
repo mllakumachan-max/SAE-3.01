@@ -25,12 +25,12 @@ final class CatalogueController
      * nous contrôlons entièrement.
      *
      * Un paramètre lié ne conviendrait pas : il protège une VALEUR, jamais un
-     * IDENTIFIANT. « ORDER BY :colonne » lié à 'titre' produit « ORDER BY
-     * 'titre' », une chaîne constante : le tri ne trie plus rien, sans erreur.
+     * IDENTIFIANT. « ORDER BY :colonne » lié à 'nom' produit « ORDER BY
+     * 'nom' », une chaîne constante : le tri ne trie plus rien, sans erreur.
      */
     private const TRIS = [
-        'titre' => 'produit.nom ASC',
-        'prix'  => 'produit.prix ASC',
+        'nom'   => 'PRODUIT.nom ASC',
+        'prix'  => 'PRODUIT.prix ASC',
     ];
 
     private const PAR_PAGE_AUTORISES = [12, 24, 48];
