@@ -52,10 +52,19 @@ final class ProduitModel
                        produit.unite_prix,
                        produit.badge,
                        categorie.libelle AS categorie,
-                       sous_categorie.libelle AS sous_categorie
+                         sous_cat.libelle AS sous_categorie,
+                       galerie.chemin AS src,
+                       galerie.texte_alternatif AS alt
                   FROM produit
             INNER JOIN categorie ON categorie.id = produit.categorie_id
-             LEFT JOIN categorie AS sous_categorie ON sous_categorie.id = produit.sous_categorie_id
+                 LEFT JOIN categorie AS sous_cat ON sous_cat.id = produit.sous_categorie_id
+             LEFT JOIN galerie ON galerie.id = (
+                 SELECT g.id
+                   FROM galerie g
+                  WHERE g.produit_id = produit.id
+                  ORDER BY g.ordre ASC
+                  LIMIT 1
+             )
               ORDER BY {$ordre}, produit.id
                  LIMIT :limite OFFSET :decalage";
 

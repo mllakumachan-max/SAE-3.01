@@ -28,8 +28,8 @@ final class CatalogueController
      * 'titre' », une chaîne constante : le tri ne trie plus rien, sans erreur.
      */
     private const TRIS = [
-        'titre' => 'produit.nom ASC',
-        'prix'  => 'produit.prix ASC',
+        'nom'  => 'produit.nom ASC',
+        'prix' => 'produit.prix ASC',
     ];
 
     private const PAR_PAGE_AUTORISES = [12, 24, 48];
@@ -72,11 +72,11 @@ final class CatalogueController
         // Lecture : l'URL porte le choix du moment, le cookie le réglage retenu.
         // L'URL passe en premier : un cookie posé par setcookie() ne figure
         // dans $_COOKIE qu'à la requête suivante.
-        $tri     = $requete->parametre('tri') ?? $_COOKIE['tri'] ?? 'titre';
+        $tri     = $requete->parametre('tri') ?? $_COOKIE['tri'] ?? 'nom';
         $parPage = (int) ($requete->parametre('parPage') ?? $_COOKIE['par_page'] ?? 12);
 
         // Validation : on n'accepte que ce qui figure dans nos listes.
-        $tri     = array_key_exists($tri, self::TRIS) ? $tri : 'titre';
+        $tri     = array_key_exists($tri, self::TRIS) ? $tri : 'nom';
         $parPage = in_array($parPage, self::PAR_PAGE_AUTORISES, true) ? $parPage : 12;
         $ordre   = self::TRIS[$tri];
 
