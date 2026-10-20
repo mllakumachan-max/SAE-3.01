@@ -1,5 +1,5 @@
-<article class="grid gap-8 md:grid-cols-2">
-  <ol class="flex justify-start items-center gap-5">
+<article class="flex flex-col gap-8">
+  <ol class="flex flex-wrap items-center gap-5">
     <li>
       <slot name="lien-retour-catalogue"></slot>
     </li>
@@ -8,8 +8,9 @@
     </li>
   </ol>
 
-  <figure class="flex flex-col gap-3">
+  <figure class="grid items-start gap-8 lg:grid-cols-2">
     <slot name="galerie"></slot>
+
     <figcaption class="flex flex-col gap-5">
       <div class="flex items-start justify-between gap-4">
         <h1 class="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{{nom}}</h1>

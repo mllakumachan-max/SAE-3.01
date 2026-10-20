@@ -27,12 +27,15 @@ let CarteProduitView = {
         ? produit.prix.toFixed(2).replace(".", ",")
         : String(produit.prix || "0,00");
 
+    // Le lien de la fiche produit est son adresse publique : le slug.
+    const lien = produit.lien || (produit.slug ? `/produit/${produit.slug}` : "#");
+
     return genericRenderer(template, {
       nom: produit.nom || "",
       prix: prixFormate,
       src: produit.src || produit.image || "",
       alt: produit.alt || produit.nom || "Produit Action",
-      lien: produit.lien || (produit.id ? `/produit/${produit.id}` : "#"),
+      lien,
     });
   },
 

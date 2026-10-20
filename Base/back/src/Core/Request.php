@@ -24,6 +24,9 @@ final class Request
     /** Corps de la requête, décodé depuis le JSON reçu. */
     private array $corps;
 
+    /** Paramètres présents dans le chemin de l'URL, extraits par le routeur. */
+    private array $parametresUrl = [];
+
     private function __construct(string $methode, string $chemin, array $parametres, array $corps)
     {
         $this->methode    = $methode;
@@ -82,6 +85,29 @@ final class Request
         $valeur = $this->parametres[$cle] ?? null;
 
         return is_string($valeur) ? $valeur : $defaut;
+    }
+
+    /**
+     * Dépose les paramètres lus dans le chemin de l'URL.
+     *
+     * C'est le routeur qui les extrait : une route déclarée
+     * « GET /api/produits/:slug » fournit ainsi $requete->parametreUrl('slug').
+     * Ce sont des valeurs venues de l'URL, donc des données externes : le
+     * contrôleur les validera avant de s'en servir.
+     */
+    public function definirParametresUrl(array $parametres): void
+    {
+        $this->parametresUrl = $parametres;
+    }
+
+    /**
+     * Un paramètre du chemin de l'URL (:slug).
+     */
+    public function parametreUrl(string $cle, ?string $defaut = null): ?string
+    {
+        $valeur = $this->parametresUrl[$cle] ?? null;
+
+        return is_string($valeur) && $valeur !== '' ? $valeur : $defaut;
     }
 
     /**

@@ -33,8 +33,31 @@ final class Router
     public function traiter(Request $requete): void
     {
         foreach ($this->routes as $declaration => $cible) {
-            if (self::normaliser($declaration) !== $requete->signature()) {
-                continue;
+            $declaration = self::normaliser($declaration);
+
+            [$methodeHttp, $cheminRoute] = self::separer($declaration);
+
+            // Une route sans paramètre se compare directement : c'est le cas
+            // le plus fréquent, et le plus rapide.
+            if (!str_contains($cheminRoute, ':')) {
+                if ($methodeHttp !== $requete->methode() || $cheminRoute !== $requete->chemin()) {
+                    continue;
+                }
+            } else {
+                // Une route avec paramètre se compare à un motif : la route
+                // « /api/produits/:slug » correspond à la requête
+                // « /api/produits/couette-sans-housse-easy ».
+                if ($methodeHttp !== $requete->methode()) {
+                    continue;
+                }
+
+                $parametres = self::extraire($cheminRoute, $requete->chemin());
+
+                if ($parametres === null) {
+                    continue;
+                }
+
+                $requete->definirParametresUrl($parametres);
             }
 
             // $cible est le tableau déclaré dans routes.php :
@@ -70,5 +93,59 @@ final class Router
     private static function normaliser(string $declaration): string
     {
         return preg_replace('/\s+/', ' ', trim($declaration)) ?? $declaration;
+    }
+
+    /**
+     * Sépare la déclaration en méthode et chemin : « GET /api/films ».
+     *
+     * @return array{0:string, 1:string}
+     */
+    private static function separer(string $declaration): array
+    {
+        $espaces = explode(' ', $declaration, 2);
+
+        return [$espaces[0], $espaces[1] ?? '/'];
+    }
+
+    /**
+     * Compare un chemin de route à un chemin demandé, et renvoie les
+     * paramètres nommés trouvés.
+     *
+     * Le chemin de route « /api/produits/:slug » est d'abord traduit en
+     * expression régulière : chaque « :nom » devient un groupe nommé qui
+     * accepte tout sauf une barre oblique. Le nom du groupe est le nom du
+     * paramètre.
+     *
+     * @return array<string, string>|null Les paramètres, ou null si le chemin
+     *                                    ne correspond pas.
+     */
+    private static function extraire(string $modele, string $chemin): ?array
+    {
+        $motif = preg_quote($modele, '#');
+
+        // preg_quote a échappé les deux-points : on rétablit les marqueurs
+        // de paramètre, puis on les remplace par un groupe nommé.
+        $motif = str_replace('\\:', ':', $motif);
+
+        $motif = preg_replace_callback(
+            '/:([A-Za-z0-9_]+)/',
+            static fn (array $correspondances): string => '(?P<' . $correspondances[1] . '>[^/]+)',
+            $motif
+        ) ?? $motif;
+
+        if (preg_match('#^' . $motif . '$#', $chemin, $trouvailles) !== 1) {
+            return null;
+        }
+
+        $parametres = [];
+
+        foreach ($trouvailles as $nom => $valeur) {
+            if (is_string($nom)) {
+                // L'URL est décodée : « %C3%A9 » redevient « é ».
+                $parametres[$nom] = rawurldecode($valeur);
+            }
+        }
+
+        return $parametres;
     }
 }

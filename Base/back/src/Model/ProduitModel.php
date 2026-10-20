@@ -57,6 +57,7 @@ final class ProduitModel
 
         $sql = "SELECT PRODUIT.id,
                        PRODUIT.reference,
+                       PRODUIT.slug,
                        PRODUIT.nom,
                        PRODUIT.marque,
                        PRODUIT.format,
@@ -95,6 +96,104 @@ final class ProduitModel
         $requetePreparee->execute();
 
         return $requetePreparee->fetchAll();
+    }
+
+    /**
+     * Un produit, cherché par son slug, avec ses catégories.
+     *
+     * Le slug est l'adresse publique du produit : c'est lui que l'URL
+     * « /api/produits/couette-sans-housse-easy » désigne. Il est unique en
+     * base (uq_produit_slug), donc une seule ligne peut correspondre.
+     *
+     * La catégorie est la catégorie racine (celle qui porte les produits dans
+     * le catalogue) et la sous-catégorie celle qui les range dans un rayon
+     * plus précis. Le nom de la colonne « categorie_id » est réutilisé pour la
+     * catégorie racine : la jointure se fait donc sur une table aliasée.
+     *
+     * @return array<string, mixed>|null Le produit, ou null s'il n'existe pas.
+     */
+    public function trouverParSlug(string $slug): ?array
+    {
+        $sql = 'SELECT PRODUIT.id,
+                       PRODUIT.reference,
+                       PRODUIT.slug,
+                       PRODUIT.nom,
+                       PRODUIT.marque,
+                       PRODUIT.format,
+                       PRODUIT.description,
+                       PRODUIT.prix,
+                       PRODUIT.prix_unitaire,
+                       PRODUIT.unite_prix,
+                       PRODUIT.badge,
+                       categorie.id       AS categorie_id,
+                       categorie.libelle AS categorie,
+                       categorie.slug    AS categorie_slug,
+                       sous_cat.libelle  AS sous_categorie,
+                       sous_cat.slug     AS sous_categorie_slug
+                  FROM PRODUIT
+             INNER JOIN CATEGORIE AS categorie ON categorie.id = PRODUIT.categorie_id
+             LEFT  JOIN CATEGORIE AS sous_cat  ON sous_cat.id = PRODUIT.sous_categorie_id
+                 WHERE PRODUIT.slug = :slug';
+
+        $requetePreparee = $this->pdo->prepare($sql);
+        $requetePreparee->bindValue(':slug', $slug, PDO::PARAM_STR);
+        $requetePreparee->execute();
+
+        $ligne = $requetePreparee->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return [
+            'id'                => (int) $ligne['id'],
+            'reference'         => $ligne['reference'],
+            'slug'              => $ligne['slug'],
+            'nom'               => $ligne['nom'],
+            'marque'            => $ligne['marque'],
+            'format'            => $ligne['format'],
+            'description'       => $ligne['description'],
+            // Les DECIMAL arrivent en texte : c'est le front qui les convertit
+            // en nombre, comme il le fait pour le catalogue.
+            'prix'              => $ligne['prix'],
+            'prix_unitaire'     => $ligne['prix_unitaire'],
+            'unite_prix'        => $ligne['unite_prix'],
+            'badge'             => $ligne['badge'],
+            'categorie'         => [
+                'id'      => (int) $ligne['categorie_id'],
+                'libelle' => $ligne['categorie'],
+                'slug'    => $ligne['categorie_slug'],
+            ],
+            'sous_categorie'    => $ligne['sous_categorie'] === null
+                ? null
+                : [
+                    'libelle' => $ligne['sous_categorie'],
+                    'slug'    => $ligne['sous_categorie_slug'],
+                ],
+        ];
+    }
+
+    /**
+     * Les images d'un produit, dans l'ordre d'affichage.
+     */
+    public function galerie(int $produitId): array
+    {
+        $requetePreparee = $this->pdo->prepare(
+            'SELECT chemin, texte_alternatif
+               FROM GALERIE
+              WHERE produit_id = :produit
+           ORDER BY ordre ASC, id ASC'
+        );
+        $requetePreparee->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        $requetePreparee->execute();
+
+        return array_map(
+            static fn (array $ligne): array => [
+                'chemin'           => $ligne['chemin'],
+                'texte_alternatif' => $ligne['texte_alternatif'],
+            ],
+            $requetePreparee->fetchAll()
+        );
     }
 
     /**
