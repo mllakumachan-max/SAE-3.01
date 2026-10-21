@@ -20,7 +20,10 @@ export function RootLayout(path = "/") {
 
   const estAdmin = path === "/admin" || path.startsWith("/admin/");
   const HeaderView = estAdmin ? HeaderAdminView : HeaderClientView;
+  const actions = estAdmin
+    ? { surDeconnexion: () => document.dispatchEvent(new Event("admin:deconnexion")) }
+    : {};
 
-  layout.querySelector('slot[name="header"]').replaceWith(HeaderView.dom());
+  layout.querySelector('slot[name="header"]').replaceWith(HeaderView.dom(actions));
   return layout;
 }

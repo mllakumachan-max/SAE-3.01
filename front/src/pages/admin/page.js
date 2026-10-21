@@ -68,6 +68,8 @@ C.handler_deconnexion = async function () {
   V.rafraichir();
 };
 
+document.addEventListener("admin:deconnexion", C.handler_deconnexion);
+
 C.init = async function () {
   M.message = null;
   await C.chargerStats();
