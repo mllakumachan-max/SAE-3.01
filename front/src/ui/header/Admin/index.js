@@ -34,4 +34,4 @@ let HeaderAdminView = {
   },
 };
 
-export { HeaderAdminView, HeaderAdminView as HeaderView };
+export { HeaderAdminView };

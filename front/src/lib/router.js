@@ -161,7 +161,7 @@ class Router {
 
     if (layoutFn) {
       // Le layout renvoie un fragment dont le <slot> sans nom reçoit la page.
-      const layout = layoutFn();
+      const layout = layoutFn(path);
       layout.querySelector("slot:not([name])").replaceWith(page);
       page = layout;
     }

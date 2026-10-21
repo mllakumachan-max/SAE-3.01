@@ -102,4 +102,4 @@ let HeaderClientView = {
   },
 };
 
-export { HeaderClientView, HeaderClientView as HeaderView };
+export { HeaderClientView };
