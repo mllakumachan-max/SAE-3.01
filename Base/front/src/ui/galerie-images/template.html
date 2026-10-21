@@ -1,16 +1,16 @@
-<figure class="flex flex-col gap-3">
-  <img data-zone="principale" src="" alt="" class="h-96 w-full object-contain bg-white" />
-  <figcaption class="flex flex-col gap-2">
-    <div class="flex w-full items-center justify-between py-fit overflow-hidden rounded-lg bg-zinc-50 dark:bg-zinc-950">
-      <button type="button" data-action="precedent" aria-label="Image précédente" class="flex h-9 w-9 items-center justify-center bg-background-subtle text-zinc-900 shadow hover:bg- dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:bg-zinc-900">
+<figure class="flex flex-col gap-3 w-full c-galerie-images">
+  <img data-zone="principale" src="" alt="" class="h-96 w-full object-contain bg-surface-default" />
+  <figcaption class="flex flex-col gap-3">
+    <div class="flex w-full items-center justify-between overflow-hidden rounded-lg bg-surface-default">
+      <button type="button" data-action="precedent" aria-label="Image précédente" class="flex h-10 w-10 items-center justify-center bg-background-subtle text-text-primary shadow hover:bg-surface-subtle">
         ‹
       </button>
-      <p class="text-black/60 px-2 py-0.5 text-xs backdrop-blur-xs">
+      <p class="text-14 text-text-primary backdrop-blur-xs">
         <span data-zone="index-image">{{numero-img}}</span>
         / 
         <span data-zone="total-images">{{total-img}}</span>
       </p>
-      <button type="button" data-action="suivant" aria-label="Image suivante" class="flex h-9 w-9 2 items-center justify-center bg-background-subtle text-zinc-900 shadow hover:bg- dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:bg-zinc-900">
+      <button type="button" data-action="suivant" aria-label="Image suivante" class="flex h-10 w-10 items-center justify-center bg-background-subtle text-text-primary shadow hover:bg-surface-subtle">
         ›
       </button>
     </div>

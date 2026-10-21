@@ -1,13 +1,13 @@
-<section class="mx-auto max-w-3xl">
-    <h2 class="mb-4 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">Mon panier</h2>
+<section class="mx-auto max-w-3xl c-tableaux-recapitulatifs-client-panier">
+    <h2 class="mb-4 text-24 font-semibold tracking-tight text-text-primary">Mon panier</h2>
     <ul data-zone="lignes" class="flex flex-col"></ul>
-    <p data-zone="vide" class="hidden py-8 text-center text-zinc-500 dark:text-zinc-400">Votre panier est vide.</p>
+    <p data-zone="vide" class="hidden py-8 text-center text-text-secondary">Votre panier est vide.</p>
 
-    <div class="mt-6 flex flex-col gap-4 border-t border-zinc-200 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-zinc-800">
-        <p class="text-lg font-semibold text-zinc-950 dark:text-zinc-50">Total : <span data-zone="total">0,00 €</span></p>
+    <div class="mt-6 flex flex-col gap-4 border-t pt-4 sm:flex-row sm:items-center sm:justify-between border-border-default">
+        <p class="text-18 font-semibold text-text-primary">Total : <span data-zone="total">0,00 €</span></p>
         <div class="flex gap-3">
-            <button type="button" data-action="continuer" class="h-10 rounded-md border border-zinc-200 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800">← Continuer mes achats</button>
-            <button type="button" data-action="valider" class="h-10 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40 dark:bg-zinc-50 dark:text-zinc-900">Valider mon panier</button>
+            <button type="button" data-action="continuer" class="h-10 rounded-md border px-4 text-14 font-medium text-text-secondary hover:bg-surface-subtle border-border-default">← Continuer mes achats</button>
+            <button type="button" data-action="valider" class="h-10 rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text hover:opacity-90 disabled:opacity-40">Valider mon panier</button>
         </div>
     </div>
 </section>

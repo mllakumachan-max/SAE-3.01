@@ -12,24 +12,24 @@
   --font-primary: "Ubuntu", sans-serif;
 
   /* Primitives de palette (Tokens Figma) */
-  --color-palette-neutral-100: #f3f4f6;
-  --color-palette-neutral-200: #dadfe3;
-  --color-palette-neutral-300: #ced4da;
-  --color-palette-neutral-500: #8593a3;
-  --color-palette-neutral-700: #505862;
-  --color-palette-neutral-950: #1a1a1a;
-  --color-palette-neutral-black: #000000;
-  --color-palette-neutral-white: #ffffff;
-  --color-palette-blue-brand: #001489;
-  --color-palette-blue-alternate: #001588;
-  --color-palette-blue-muted: #6672b8;
-  --color-palette-cyan-strong: #00b6e7;
-  --color-palette-cyan-subtle: #e6f8fd;
-  --color-palette-green-dark: #007250;
-  --color-palette-green-bright: #00b852;
-  --color-palette-purple-accent: #ac48a6;
-  --color-palette-orange-strong: #ff8200;
-  --color-palette-orange-soft: #ffb466;
+  --color-palette-neutral-100: oklch(96.70% 0.0029 264.54);
+  --color-palette-neutral-200: oklch(90.10% 0.0077 241.67);
+  --color-palette-neutral-300: oklch(86.71% 0.0106 247.95);
+  --color-palette-neutral-500: oklch(65.74% 0.0288 251.77);
+  --color-palette-neutral-700: oklch(45.70% 0.0192 254.03);
+  --color-palette-neutral-950: oklch(21.78% 0 0);
+  --color-palette-neutral-black: oklch(0% 0 0);
+  --color-palette-neutral-white: oklch(100% 0 0);
+  --color-palette-blue-brand: oklch(30.25% 0.1854 264.17);
+  --color-palette-blue-alternate: oklch(30.23% 0.1835 264.15);
+  --color-palette-blue-muted: oklch(57.32% 0.1087 275.07);
+  --color-palette-cyan-strong: oklch(72.29% 0.1381 225.90);
+  --color-palette-cyan-subtle: oklch(96.73% 0.0201 216.19);
+  --color-palette-green-dark: oklch(48.88% 0.1040 164.11);
+  --color-palette-green-bright: oklch(68.36% 0.1908 149.45);
+  --color-palette-purple-accent: oklch(56.70% 0.1734 329.96);
+  --color-palette-orange-strong: oklch(73.49% 0.1846 53.83);
+  --color-palette-orange-soft: oklch(82.59% 0.1287 65.43);
 
   /* Typographie : Tailles de texte en em (relatives au contexte parent) */
   --text-12: 0.75em;

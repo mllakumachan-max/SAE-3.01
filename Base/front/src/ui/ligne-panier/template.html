@@ -1,11 +1,11 @@
-<li class="flex flex-col gap-3 border-b border-zinc-200 py-4 sm:flex-row sm:items-center dark:border-zinc-800">
-  <img src="{{src}}" alt="{{alt}}" class="h-20 w-20 shrink-0 rounded-md bg-zinc-50 object-contain dark:bg-zinc-950" />
+<li class="flex flex-col gap-3 border-b py-4 sm:flex-row sm:items-center border-border-default c-ligne-panier">
+  <img src="{{src}}" alt="{{alt}}" class="h-20 w-20 shrink-0 rounded-md bg-surface-subtle object-contain" />
   <div class="flex flex-1 flex-col gap-1">
-    <a href="{{lien}}" data-link class="font-medium text-zinc-900 hover:underline dark:text-zinc-100">{{nom}}</a>
-    <p data-zone="options" class="text-xs text-zinc-500 dark:text-zinc-400"></p>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">{{prix}} € l'unité</p>
+    <a href="{{lien}}" data-link class="font-medium text-text-primary hover:underline">{{nom}}</a>
+    <p data-zone="options" class="text-12 text-text-secondary"></p>
+    <p class="text-14 text-text-secondary">{{prix}} € l'unité</p>
   </div>
   <slot name="quantite"></slot>
-  <p data-zone="total" class="w-28 text-right font-semibold text-zinc-950 dark:text-zinc-50"></p>
-  <button type="button" data-action="supprimer" class="text-sm text-red-700 underline hover:text-red-900 dark:text-red-400">Supprimer</button>
+  <p data-zone="total" class="w-28 text-right font-semibold text-text-primary"></p>
+  <button type="button" data-action="supprimer" class="text-14 text-status-warning-text underline hover:text-status-warning-text">Supprimer</button>
 </li>

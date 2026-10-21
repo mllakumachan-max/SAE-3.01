@@ -1,22 +1,22 @@
-<header class="sticky top-0 z-10 border-b border-zinc-200 bg-white shadow-xs dark:border-zinc-800 dark:bg-zinc-950">
+<header class="sticky top-0 z-10 border-b bg-surface-default shadow-xs border-border-default c-header-client">
   <!-- Ligne principale : Logo, Recherche, Actions utilisateur -->
   <figure class="flex flex-col mx-auto max-w-6xl items-center justify-center w-full gap-5 px-6 py-3.5">
     <div class="flex w-full justify-between items-center">
       <!-- Actions à gauche -->
       <a href="/" data-link class="flex items-center gap-2">
         <img src="{{logo-src}}" alt="Logo de l'application" class="h-5 w-auto" />
-        <span class="hidden text-xs font-medium text-zinc-500 sm:inline dark:text-zinc-400">Click & Collect</span>
+        <span class="hidden text-12 font-medium text-text-secondary sm:inline">Click & Collect</span>
       </a>
 
       <!-- Actions à droite : Thème, Compte, Panier -->
       <div class="flex items-center gap-3">
-        <button type="button" data-action="theme" aria-label="Changer de thème" class="flex h-9 items-center justify-center rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        <button type="button" data-action="theme" aria-label="Changer de thème" class="flex h-9 items-center justify-center rounded-md border px-3 text-12 font-medium text-text-secondary transition-colors hover:bg-surface-subtle border-border-default">
           <svg class="h-4 w-4 shrink-0" aria-hidden="true">
             <use href="{{icon-theme}}" />
           </svg>
         </button>
 
-        <a href="/compte" data-link class="flex h-9 items-center gap-1.5 rounded-md border border-zinc-200 px-3 text-xs font-medium text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        <a href="/compte" data-link class="flex h-9 items-center gap-1.5 rounded-md border px-3 text-12 font-medium text-text-secondary transition-colors hover:bg-surface-subtle border-border-default">
           <svg class="h-4 w-4 shrink-0" aria-hidden="true">
             <use href="#icon-user-circle" />
           </svg>
@@ -24,21 +24,21 @@
         </a>
 
         <!-- Bouton Panier avec compteur d'articles (CMD-b) -->
-        <a href="/panier" data-link class="relative flex h-9 items-center gap-2 rounded-md bg-blue-600 px-3.5 text-xs font-semibold text-white transition-opacity hover:opacity-90">
+        <a href="/panier" data-link class="relative flex h-9 items-center gap-2 rounded-md bg-action-primary-background px-3.5 text-12 font-semibold text-action-primary-text transition-opacity hover:opacity-90">
           <svg class="h-4 w-4 shrink-0" aria-hidden="true">
             <use href="#icon-shopping-bag" />
           </svg>
           <span>Panier</span>
-          <span data-role="compteur-panier" class="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[11px] font-bold text-blue-600">
+          <span data-role="compteur-panier" class="flex h-5 min-w-5 items-center justify-center rounded-full bg-surface-info px-1 text-12 font-bold text-text-link">
             {{nbArticles}}
           </span>
         </a>
       </div>
     </div>
     <!-- Barre de catégories (DEC-a) -->
-    <figcaption class="w-full border-t border-zinc-100 bg-zinc-50/80 px-6 py-2 dark:border-zinc-800 dark:bg-zinc-900/50">
-      <nav class="flex w-full items-center gap-6 overflow-x-auto text-sm">
-        <a href="/" data-link class="font-medium text-zinc-900 hover:text-blue-600 aria-[current=page]:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400 dark:aria-[current=page]:text-blue-400">
+    <figcaption class="w-full border-t bg-surface-subtle px-6 py-2 border-border-default">
+      <nav class="flex w-full items-center gap-6 overflow-x-auto text-14">
+        <a href="/" data-link class="font-medium text-text-primary hover:text-text-link aria-[current=page]:text-text-link">
           Tous les produits
         </a>
         <slot name="categories"></slot>

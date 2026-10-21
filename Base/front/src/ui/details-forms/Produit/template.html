@@ -1,46 +1,46 @@
-<section class="mb-6 rounded-lg border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-    <h2 class="mb-4 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{{titre}}</h2>
+<section class="mb-6 rounded-lg border bg-surface-default p-6 shadow-xs border-border-default c-details-forms-produit">
+    <h2 class="mb-4 text-24 font-semibold tracking-tight text-text-primary">{{titre}}</h2>
     <form class="flex flex-col gap-4" novalidate>
-        <p data-zone="message" role="alert" class="hidden rounded-md border border-red-700 p-3 text-sm text-red-700 dark:border-red-400 dark:text-red-400"></p>
+        <p data-zone="message" role="alert" class="hidden rounded-md border border-status-warning-indicator p-3 text-14 text-status-warning-text"></p>
 
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
         Nom du produit
-        <input name="nom" type="text" required value="{{nom}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+        <input name="nom" type="text" required value="{{nom}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
         </label>
 
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
         Catégorie
-        <select name="categorieId" required data-zone="categories" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"></select>
+        <select name="categorieId" required data-zone="categories" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary"></select>
         </label>
 
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
         Description
-        <textarea name="description" rows="4" class="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">{{description}}</textarea>
+        <textarea name="description" rows="4" class="rounded-md border bg-surface-default px-3 py-2 text-14 font-normal border-border-default text-text-primary">{{description}}</textarea>
         </label>
 
         <div class="grid gap-4 sm:grid-cols-3">
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
             Prix (€)
-            <input name="prix" type="number" min="0" step="0.01" required value="{{prix}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+            <input name="prix" type="number" min="0" step="0.01" required value="{{prix}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
         </label>
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
             Stock
-            <input name="stock" type="number" min="0" step="1" required value="{{stock}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+            <input name="stock" type="number" min="0" step="1" required value="{{stock}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
         </label>
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
             Seuil « Bientôt épuisé »
-            <input name="seuilAlerte" type="number" min="0" step="1" required value="{{seuilAlerte}}" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100" />
+            <input name="seuilAlerte" type="number" min="0" step="1" required value="{{seuilAlerte}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
         </label>
         </div>
 
-        <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
         Image du produit
-        <input name="image" type="file" accept="image/*" class="text-sm font-normal" />
+        <input name="image" type="file" accept="image/*" class="text-14 font-normal" />
         </label>
 
         <div class="mt-2 flex justify-end gap-3">
-        <button type="button" data-action="annuler" class="h-10 rounded-md border border-zinc-200 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800">Annuler</button>
-        <button type="submit" class="h-10 rounded-md bg-zinc-900 px-4 text-sm font-medium text-white hover:opacity-90 dark:bg-zinc-50 dark:text-zinc-900">Enregistrer</button>
+        <button type="button" data-action="annuler" class="h-10 rounded-md border px-4 text-14 font-medium text-text-secondary hover:bg-surface-subtle border-border-default">Annuler</button>
+        <button type="submit" class="h-10 rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text hover:opacity-90">Enregistrer</button>
         </div>
     </form>
 </section>

@@ -18,7 +18,10 @@ let HeaderAdminView = {
    * @returns {string}
    */
   html: function () {
+    const estSombre = document.documentElement.classList.contains("theme-dark");
+
     return genericRenderer(template, {
+      "icon-theme": estSombre ? "#icon-sun" : "#icon-moon",
       "logo-src": logoUrl,
     });
   },
@@ -40,7 +43,14 @@ let HeaderAdminView = {
 
     let btnTheme = fragment.querySelector('[data-action="theme"]');
     if (btnTheme) {
-      btnTheme.addEventListener("click", basculerTheme);
+      btnTheme.addEventListener("click", () => {
+        basculerTheme();
+        const estSombre = document.documentElement.classList.contains("theme-dark");
+        const useIcon = btnTheme.querySelector("use");
+        if (useIcon) {
+          useIcon.setAttribute("href", estSombre ? "#icon-sun" : "#icon-moon");
+        }
+      });
     }
 
     let btnDeconnexion = fragment.querySelector('[data-action="deconnexion"]');

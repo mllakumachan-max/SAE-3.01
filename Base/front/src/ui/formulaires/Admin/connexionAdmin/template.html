@@ -1,21 +1,21 @@
-<section class="mb-6 rounded-lg border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-  <h2 class="mb-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">Connexion administrateur</h2>
-  <p class="mb-5 text-sm text-zinc-500 dark:text-zinc-400">Accès réservé à l'équipe de gestion Action</p>
+<section class="mb-6 rounded-lg border bg-surface-default p-6 shadow-xs border-border-default c-formulaires-admin-connexionadmin">
+  <h2 class="mb-1 text-24 font-semibold tracking-tight text-text-primary">Connexion administrateur</h2>
+  <p class="mb-5 text-14 text-text-secondary">Accès réservé à l'équipe de gestion Action</p>
 
   <form class="flex flex-col gap-4">
     <slot name="message"></slot>
 
-    <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+    <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
       Identifiant
-      <input name="login" type="text" autocomplete="username" required value="{{login}}" placeholder="Identifiant ou email" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal text-zinc-900 transition-colors hover:border-zinc-400 focus:border-zinc-950 focus:outline-hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-zinc-400" />
+      <input name="login" type="text" autocomplete="username" required value="{{login}}" placeholder="Identifiant ou email" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
     </label>
 
-    <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+    <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
       Mot de passe
-      <input name="mdp" type="password" autocomplete="current-password" required placeholder="••••••••" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal text-zinc-900 transition-colors hover:border-zinc-400 focus:border-zinc-950 focus:outline-hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-zinc-600 dark:focus:border-zinc-400" />
+      <input name="mdp" type="password" autocomplete="current-password" required placeholder="••••••••" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
     </label>
 
-    <button type="submit" class="mt-2 h-10 w-full rounded-md bg-zinc-900 px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:opacity-90">
+    <button type="submit" class="mt-2 h-10 w-full rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text transition-opacity hover:opacity-90">
       Se connecter
     </button>
   </form>
