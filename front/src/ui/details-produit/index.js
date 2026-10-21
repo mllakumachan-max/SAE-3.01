@@ -1,21 +1,15 @@
 import { genericRenderer, htmlToFragment } from "../../lib/utils.js";
 import { BadgeStockView } from "../badge-stock/index.js";
 import { QuantiteView } from "../boutons/Quantite/index.js";
-import { GalerieImagesView } from "../galerie-images/index.js";
-import { InfosProduitView } from "../infos-produit/index.js";
-import { LienRetourView } from "../lien-retour/index.js";
 import template from "./template.html?raw";
 
 /**
  * Fiche détaillée d'un produit :
- * galerie, description, prix, caractéristiques, quantité et ajout au panier.
+ * image, description, prix, stock, quantité et ajout au panier.
  * Ce n'est PAS la carte de la grille : voir carte-produit pour celle-ci.
  *
- * produit : { id, nom, prix, description,
- *             images: [{ src, alt }],
- *             lienCatalogue, lienCategorie, libelleCategorie,
- *             reference, marque, format, prix_unitaire, unite_prix,
- *             sous_categorie, etat, stock, seuilAlerte }
+ * produit : { id, nom, prix, src, alt, description, etat, stock, seuilAlerte,
+ *             lienCategorie, lienCatalogue }
  */
 let DetailProduitView = {
   /**
@@ -43,33 +37,6 @@ let DetailProduitView = {
   dom: function (produit = {}, actions = {}) {
     let fragment = htmlToFragment(DetailProduitView.html(produit));
 
-    // Navigation de retour : vers le catalogue, et vers la catégorie du produit.
-    let slotCatalogue = fragment.querySelector('slot[name="lien-retour-catalogue"]');
-    if (slotCatalogue) {
-      slotCatalogue.replaceWith(
-        LienRetourView.dom({
-          libelle: produit.libelleCatalogue ?? "Tous les produits",
-          lien: produit.lienCatalogue ?? "/",
-        })
-      );
-    }
-
-    let slotCategorie = fragment.querySelector('slot[name="lien-retour-categorie"]');
-    if (slotCategorie) {
-      slotCategorie.replaceWith(
-        LienRetourView.dom({
-          libelle: produit.libelleCategorie ?? "Catégorie",
-          lien: produit.lienCategorie ?? "/",
-        })
-      );
-    }
-
-    // Galerie d'images.
-    let slotGalerie = fragment.querySelector('slot[name="galerie"]');
-    if (slotGalerie) {
-      slotGalerie.replaceWith(GalerieImagesView.dom(produit.images ?? []));
-    }
-
     // Badge de stock inséré dans son slot
     let slotBadge = fragment.querySelector('slot[name="badge-stock"]');
     if (slotBadge) {
@@ -80,12 +47,6 @@ let DetailProduitView = {
           seuilAlerte: produit.seuilAlerte,
         })
       );
-    }
-
-    // Caractéristiques du produit.
-    let zoneOptions = fragment.querySelector('[data-zone="options"]');
-    if (zoneOptions) {
-      zoneOptions.replaceWith(InfosProduitView.dom(produit));
     }
 
     // Contrôleur de quantité inséré dans son slot

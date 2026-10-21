@@ -16,19 +16,7 @@ let mettreEnForme = function (produit) {
   return {
     ...produit,
     prix: Number(produit.prix),
-    prix_unitaire: produit.prix_unitaire === null ? null : Number(produit.prix_unitaire),
     src: urlImage(produit.src),
-  };
-};
-
-/**
- * Met une image de galerie sous la forme attendue par la vue :
- * une adresse utilisable et un texte alternatif.
- */
-let mettreImageEnForme = function (image) {
-  return {
-    src: urlImage(image.chemin),
-    alt: image.texte_alternatif ?? "",
   };
 };
 
@@ -55,23 +43,6 @@ ProduitData.fetchPage = async function (page, reglages, categorieSlug = null) {
   let reponse = await getRequest(uri);
 
   return { ...reponse, produits: reponse.produits.map(mettreEnForme) };
-};
-
-/**
- * La fiche d'un produit : GET /api/produits/:slug
- *
- * Le slug est l'adresse publique du produit, celle qui figure dans l'URL de
- * la page. La réponse contient le produit et sa galerie d'images :
- * { produit, galerie }
- */
-ProduitData.fetchBySlug = async function (slug) {
-  let reponse = await getRequest(`produits/${encodeURIComponent(slug)}`);
-
-  return {
-    ...reponse,
-    produit: mettreEnForme(reponse.produit),
-    galerie: (reponse.galerie ?? []).map(mettreImageEnForme),
-  };
 };
 
 export { ProduitData };

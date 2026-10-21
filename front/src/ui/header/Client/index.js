@@ -1,6 +1,5 @@
 import { genericRenderer, htmlToFragment } from "../../../lib/utils.js";
 import { basculerTheme } from "../../../lib/theme.js";
-import { nombreArticles } from "../../../lib/panier.js";
 import { CategorieData } from "../../../data/categorie.js";
 import template from "./template.html?raw";
 import templateA from "./templateA.html?raw";
@@ -22,7 +21,7 @@ let HeaderClientView = {
     const iconTheme = estSombre ? "#icon-sun" : "#icon-moon";
 
     return genericRenderer(template, {
-      nbArticles: data.nbArticles ?? data.totalArticles ?? nombreArticles(),
+      nbArticles: data.nbArticles ?? data.totalArticles ?? 0,
       "icon-theme": iconTheme,
       "logo-src": logoUrl,
     });
