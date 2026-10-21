@@ -19,6 +19,7 @@ use App\Core\Router;
 use App\Controller\AuthController;
 use App\Controller\CategorieController;
 use App\Controller\CatalogueController;
+use App\Controller\ProduitController;
 use App\Controller\StatsController;
 use App\Model\CategorieModel;
 use App\Model\ProduitModel;
@@ -68,6 +69,7 @@ try {
             $config['chemin']
         ),
         CategorieController::class => new CategorieController(new CategorieModel($pdo)),
+        ProduitController::class   => new ProduitController(new ProduitModel($pdo)),
         AuthController::class      => new AuthController(),
         //StatsController::class     => new StatsController(new ProduitModel($pdo)),
     ];

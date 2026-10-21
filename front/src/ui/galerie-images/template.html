@@ -1,15 +1,19 @@
 <figure class="flex flex-col gap-3">
-  <div class="flex h-96 w-full items-center justify-center overflow-hidden rounded-lg bg-zinc-50 dark:bg-zinc-950">
-    <img data-zone="principale" src="" alt="" class="h-full w-full object-contain" />
-    <button type="button" data-action="precedent" aria-label="Image précédente" class="flex h-9 w-9 -translate-y-1/items-center justify-center rounded-full bg-white/80 text-zinc-900 shadow hover:bg-white dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:bg-zinc-900">‹</button>
-    <p class="rounded-sm bg-black/60 px-2 py-0.5 text-xs text-white backdrop-blur-xs">
-      <span data-zone="index-image">{{numero-img}}</span>
-       / 
-      <span data-zone="total-images">{{total-img}}</span>
-    </p>
-    <button type="button" data-action="suivant" aria-label="Image suivante" class="flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-zinc-900 shadow hover:bg-white dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:bg-zinc-900">›</button>
-  </div>
+  <img data-zone="principale" src="" alt="" class="h-96 w-full object-contain bg-white" />
   <figcaption class="flex flex-col gap-2">
+    <div class="flex w-full items-center justify-between py-fit overflow-hidden rounded-lg bg-zinc-50 dark:bg-zinc-950">
+      <button type="button" data-action="precedent" aria-label="Image précédente" class="flex h-9 w-9 items-center justify-center bg-background-subtle text-zinc-900 shadow hover:bg- dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:bg-zinc-900">
+        ‹
+      </button>
+      <p class="text-black/60 px-2 py-0.5 text-xs backdrop-blur-xs">
+        <span data-zone="index-image">{{numero-img}}</span>
+        / 
+        <span data-zone="total-images">{{total-img}}</span>
+      </p>
+      <button type="button" data-action="suivant" aria-label="Image suivante" class="flex h-9 w-9 2 items-center justify-center bg-background-subtle text-zinc-900 shadow hover:bg- dark:bg-zinc-900/80 dark:text-zinc-100 dark:hover:bg-zinc-900">
+        ›
+      </button>
+    </div>
     <div data-zone="miniatures" class="flex gap-2 overflow-x-auto"></div>
   </figcaption>
 </figure>
