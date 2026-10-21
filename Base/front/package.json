@@ -1,0 +1,25 @@
+{
+  "name": "sae301-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "test:dec-b": "playwright test tests/dec-b-catalogue.spec.js",
+    "test:dec-a": "playwright test tests/dec-a-categories.spec.js",
+    "test:dec-c": "playwright test tests/dec-c-produit.spec.js",
+    "test:gof-b": "playwright test tests/gof-b-admin.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.4"
+  }
+}
