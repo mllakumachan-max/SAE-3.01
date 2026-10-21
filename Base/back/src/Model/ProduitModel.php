@@ -199,41 +199,42 @@ final class ProduitModel
     /**
      * Statistiques globales du catalogue, pour la zone d'administration.
      */
-    /*
     public function statistiques(): array
     {
         $global = $this->pdo->query(
-            'SELECT COUNT(*)           AS total,
-                    AVG(note_moyenne)  AS note_moyenne,
-                    AVG(duree_minutes) AS duree_moyenne
+            'SELECT COUNT(*) AS total,
+                    AVG(prix) AS prix_moyen,
+                    MIN(prix) AS prix_minimum,
+                    MAX(prix) AS prix_maximum
                FROM PRODUIT'
         )->fetch();
 
-        $parGenre = $this->pdo->query(
-            'SELECT GENRE.libelle AS genre,
-                    COUNT(*)      AS nombre
+        $parCategorie = $this->pdo->query(
+            'SELECT CATEGORIE.libelle AS categorie,
+                    COUNT(*)          AS nombre
                FROM PRODUIT
-         INNER JOIN GENRE ON GENRE.id = PRODUIT.genre_id
-           GROUP BY GENRE.libelle
-           ORDER BY nombre DESC, GENRE.libelle ASC'
+         INNER JOIN CATEGORIE ON CATEGORIE.id = PRODUIT.categorie_id
+           GROUP BY CATEGORIE.id, CATEGORIE.libelle
+           ORDER BY nombre DESC, CATEGORIE.libelle ASC'
         )->fetchAll();
 
         // MySQL renvoie les nombres sous forme de chaînes. On les convertit
         // ligne par ligne, pour que le JSON contienne bien des nombres.
-        $genres = [];
+        $categories = [];
 
-        foreach ($parGenre as $ligne) {
-            $genres[] = [
-                'genre'  => $ligne['genre'],
-                'nombre' => (int) $ligne['nombre'],
+        foreach ($parCategorie as $ligne) {
+            $categories[] = [
+                'categorie' => $ligne['categorie'],
+                'nombre'    => (int) $ligne['nombre'],
             ];
         }
 
         return [
-            'total'        => (int) $global['total'],
-            'noteMoyenne'  => round((float) $global['note_moyenne'], 1),
-            'dureeMoyenne' => (int) round((float) $global['duree_moyenne']),
-            'parGenre'     => $genres,
+            'totalProduits' => (int) $global['total'],
+            'prixMoyen'     => round((float) ($global['prix_moyen'] ?? 0), 2),
+            'prixMinimum'   => round((float) ($global['prix_minimum'] ?? 0), 2),
+            'prixMaximum'   => round((float) ($global['prix_maximum'] ?? 0), 2),
+            'parCategorie'  => $categories,
         ];
-    }*/
+    }
 }

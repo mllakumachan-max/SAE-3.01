@@ -71,7 +71,7 @@ try {
         CategorieController::class => new CategorieController(new CategorieModel($pdo)),
         ProduitController::class   => new ProduitController(new ProduitModel($pdo)),
         AuthController::class      => new AuthController(),
-        //StatsController::class     => new StatsController(new ProduitModel($pdo)),
+        StatsController::class     => new StatsController(new ProduitModel($pdo)),
     ];
 
     $routes = require __DIR__ . '/src/routes.php';
