@@ -335,7 +335,7 @@
 
     <form novalidate class="flex flex-col gap-4">
         <label class="flex flex-col gap-1.5 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            Nom
+            Nom *
             <input name="libelle" type="text" required maxlength="100" autocomplete="off" class="h-10 rounded-md border border-zinc-200 bg-white px-3 text-sm font-normal dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
         </label>
 
