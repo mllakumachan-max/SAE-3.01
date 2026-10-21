@@ -18,6 +18,7 @@ CREATE TABLE CATEGORIE (
     id          TINYINT UNSIGNED    NOT NULL AUTO_INCREMENT,
     libelle     VARCHAR(100)        NOT NULL,
     slug        VARCHAR(100)        NOT NULL,
+    description VARCHAR(500)        NULL,
     parent_id   TINYINT UNSIGNED    NULL,
 
     PRIMARY KEY (id),
@@ -116,20 +117,20 @@ CREATE TABLE UTILISATEUR (
 -- Catégories
 -- ---------------------------------------------------------------------------
 INSERT INTO CATEGORIE (libelle, slug, parent_id) VALUES
-    ('Multimédia',              'multimedia', NULL),
-    ('Habitat',                 'habitat', NULL),
-    ('Hobby',                   'hobby', NULL),
-    ('Bricolage',               'bricolage', NULL),
-    ('Plaids et couvertures',   'plaids-et-couvertures', 2),
-    ('Décoration',              'decoration', 2),
-    ('Salle de bain',           'salle-de-bain', 2),
-    ('Oreillers',               'oreillers', 2),
-    ('Literie',                 'literie', 2),
-    ('Peindre',                 'peindre', 3),
-    ('Coloriage et dessin',     'coloriage-et-dessin', 3),
-    ('Activités manuelles',     'activites-manuelles', 3),
-    ('Outils',                  'outils', 4),
-    ('Rangement',               'rangement', 4);
+    ('Multimédia',              'multimedia',               NULL),
+    ('Habitat',                 'habitat',                  NULL),
+    ('Hobby',                   'hobby',                    NULL),
+    ('Bricolage',               'bricolage',                NULL),
+    ('Plaids et couvertures',   'plaids-et-couvertures',    2),
+    ('Décoration',              'decoration',               2),
+    ('Salle de bain',           'salle-de-bain',            2),
+    ('Oreillers',               'oreillers',                2),
+    ('Literie',                 'literie',                  2),
+    ('Peindre',                 'peindre',                  3),
+    ('Coloriage et dessin',     'coloriage-et-dessin',      3),
+    ('Activités manuelles',     'activites-manuelles',      3),
+    ('Outils',                  'outils',                   4),
+    ('Rangement',               'rangement',                4);
 
 -- ---------------------------------------------------------------------------
 -- Produits

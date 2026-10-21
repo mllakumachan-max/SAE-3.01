@@ -46,6 +46,17 @@ let request = async function (uri, options) {
 };
 
 /**
+ * Envoi de données au format JSON, avec la méthode voulue.
+ */
+let envoyerJson = function (uri, methode, data) {
+  return request(uri, {
+    method: methode,
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+};
+
+/**
  * Lecture d'une ressource. Par exemple : await getRequest("films?page=2")
  */
 let getRequest = function (uri) {
@@ -67,4 +78,18 @@ let postRequest = function (uri, data = {}) {
   });
 };
 
-export { getRequest, postRequest, ErreurApi };
+/**
+ * Modification complète d'une ressource. Par exemple : await putRequest("admin/categories/3", {...})
+ */
+let putRequest = function (uri, data = {}) {
+  return envoyerJson(uri, "PUT", data);
+};
+ 
+/**
+ * Suppression, avec un corps JSON optionnel (par exemple la cible d'une réaffectation).
+ */
+let deleteRequest = function (uri, data = {}) {
+  return envoyerJson(uri, "DELETE", data);
+};
+
+export { getRequest, postRequest, putRequest, deleteRequest, ErreurApi };
