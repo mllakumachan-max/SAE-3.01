@@ -1,6 +1,6 @@
 import { htmlToFragment } from "../../lib/utils.js";
-import { HeaderView as HeaderClientView } from "../../ui/header/Client/index.js";
-import { HeaderView as HeaderAdminView } from "../../ui/header/Admin/index.js";
+import { HeaderClientView } from "../../ui/header/Client/index.js";
+import { HeaderAdminView } from "../../ui/header/Admin/index.js";
 import template from "./template.html?raw";
 
 /**
