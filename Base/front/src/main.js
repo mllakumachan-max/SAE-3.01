@@ -5,7 +5,7 @@ import { ProduitPage } from "./pages/produit/page.js";
 import { AdminPage } from "./pages/admin/page.js";
 import { AdminCategoriesPage } from "./pages/admin-categories/page.js";
 import { AdminProduitsPage } from "./pages/admin-produits/page.js";
-// import { PanierPage } from "./pages/panier/page.js";
+import { PanierPage } from "./pages/panier/page.js";
 import { The404Page } from "./pages/404/page.js";
 import icons from "./icons.html?raw";
 
@@ -22,7 +22,7 @@ router.addLayout("/", RootLayout);
 router.addRoute("/", CataloguePage);
 router.addRoute("/categorie/:slug", CataloguePage);
 router.addRoute("/produit/:slug", ProduitPage);
-// router.addRoute("/panier", PanierPage);
+router.addRoute("/panier", PanierPage);
 
 router.addRoute("/admin", AdminPage);
 router.addRoute("/admin/categories", AdminCategoriesPage);

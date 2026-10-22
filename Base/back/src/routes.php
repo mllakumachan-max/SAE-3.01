@@ -6,6 +6,7 @@ use App\Controller\AuthController;
 use App\Controller\CategorieAdminController;
 use App\Controller\CategorieController;
 use App\Controller\CatalogueController;
+use App\Controller\PanierController;
 use App\Controller\ProduitAdminController;
 use App\Controller\ProduitController;
 use App\Controller\StatsController;
@@ -36,6 +37,7 @@ return [
     // POST
     'POST /api/login'                       => [AuthController::class,      'login'],
     'POST /api/logout'                      => [AuthController::class,      'logout'],
+    'POST /api/panier/verifier-stock'       => [PanierController::class,    'verifierStock'],
     'POST /api/admin/categories'            => [CategorieAdminController::class,     'creer'],
     'POST /api/admin/produits'              => [ProduitAdminController::class, 'creer'],
     'POST /api/admin/produits/:id/images'   => [ProduitAdminController::class, 'ajouterImage'],

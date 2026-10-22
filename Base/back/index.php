@@ -21,6 +21,7 @@ use App\Controller\AuthController;
 use App\Controller\CategorieAdminController;
 use App\Controller\CategorieController;
 use App\Controller\CatalogueController;
+use App\Controller\PanierController;
 use App\Controller\ProduitAdminController;
 use App\Controller\ProduitController;
 use App\Controller\StatsController;
@@ -75,6 +76,7 @@ try {
         CategorieController::class      => new CategorieController(new CategorieModel($pdo)),
         CategorieAdminController::class => new CategorieAdminController(new CategorieModel($pdo)),
         ProduitController::class        => new ProduitController(new ProduitModel($pdo)),
+        PanierController::class         => new PanierController(new ProduitModel($pdo)),
         AuthController::class           => new AuthController(),
         ProduitAdminController::class   => new ProduitAdminController(new ProduitModel($pdo), new CategorieModel($pdo)),
         StatsController::class          => new StatsController(new ProduitModel($pdo)),

@@ -1,7 +1,7 @@
 import { ProduitData } from "../../data/produit.js";
 import { htmlToFragment } from "../../lib/utils.js";
 import { appliquerSeo } from "../../lib/seo.js";
-import { ajouterAuPanier } from "../../lib/panier.js";
+import { ajouterAuPanier, lignesPanier, verifierStock } from "../../lib/panier.js";
 import { DetailProduitView } from "../../ui/details-produit/index.js";
 import { FilArianeView } from "../../ui/fil-ariane/index.js";
 import { MessageView } from "../../ui/message/index.js";
@@ -85,27 +85,92 @@ C.filAriane = function () {
 };
 
 /**
- * Ajout au panier : le compteur de l'en-tête suit automatiquement, grace au
- * module panier.
+ * Ajout au panier avec vérification du stock, côté client et côté serveur.
+ *
+ * - Côté client : on refuse d'ajouter un produit épuisé, et on borne la
+ *   quantité au stock connu (réponse immédiate, sans appel réseau).
+ * - Côté serveur : on interroge l'API avec la quantité déjà présente dans le
+ *   panier plus celle demandée, car le stock peut avoir changé depuis le
+ *   chargement de la page. La quantité réellement ajoutée est alors bornée au
+ *   stock courant.
+ *
+ * Seul le message est mis à jour : reconstruire toute la page ferait perdre
+ * l'image affichée et la quantité choisie.
  */
-C.handler_ajouterPanier = function (id, quantite) {
+C.handler_ajouterPanier = async function (id, quantite) {
   if (M.produit === null) return;
+
+  const produitId = id ?? M.produit.id;
+  const stock = Number(M.produit.stock) || 0;
+  let quantiteFinale = Math.max(1, Math.floor(Number(quantite) || 1));
+
+  // --- Vérification côté client -------------------------------------------
+  if (stock <= 0) {
+    M.message = {
+      type: "erreur",
+      texte: "Ce produit est épuisé et ne peut pas être ajouté au panier.",
+    };
+    V.majMessage();
+    return;
+  }
+
+  if (quantiteFinale > stock) {
+    quantiteFinale = stock;
+    M.message = {
+      type: "erreur",
+      texte: `La quantité demandée dépasse le stock disponible (${stock} maximum). La quantité a été ajustée.`,
+    };
+  }
+
+  // --- Vérification côté serveur (stock peut avoir évolué pendant la session)
+  const ligneExistante = lignesPanier().find((ligne) => String(ligne.id) === String(produitId));
+  const quantiteDejaDansPanier = Number(ligneExistante?.quantite || 0);
+
+  let verification;
+  try {
+    verification = await verifierStock([{ id: produitId, quantite: quantiteDejaDansPanier + quantiteFinale }]);
+  } catch (erreur) {
+    // API indisponible : on s'en remet à la vérification côté client.
+    verification = null;
+  }
+
+  const ligneVerifiee = verification?.lignes?.[0];
+
+  if (ligneVerifiee && !ligneVerifiee.estValide) {
+    // Le stock courant autorise au maximum quantiteMax articles au total dans
+    // le panier. On ne peut donc en ajouter que le solde restant.
+    const quantiteTotaleMax = Number(ligneVerifiee.quantiteMax) || 0;
+    quantiteFinale = Math.max(0, quantiteTotaleMax - quantiteDejaDansPanier);
+
+    if (quantiteFinale <= 0) {
+      M.message = {
+        type: "erreur",
+        texte: ligneVerifiee.message || "Ce produit est épuisé.",
+      };
+      V.majMessage();
+      return;
+    }
+
+    M.message = {
+      type: "erreur",
+      texte: `${ligneVerifiee.message || ""} La quantité a été ajustée à ${quantiteFinale} (maximum autorisé : ${quantiteTotaleMax} au total).`,
+    };
+  } else if (!M.message || M.message.type !== "erreur") {
+    M.message = { type: "succes", texte: `${M.produit.nom} a été ajouté au panier.` };
+  }
 
   ajouterAuPanier(
     {
-      id: id ?? M.produit.id,
+      id: produitId,
       slug: M.produit.slug,
       nom: M.produit.nom,
       prix: M.produit.prix,
+      stock: M.produit.stock,
       src: M.galerie[0]?.src ?? "",
     },
-    quantite
+    quantiteFinale
   );
 
-  M.message = { type: "succes", texte: `${M.produit.nom} a été ajouté au panier.` };
-
-  // Seul le message est mis à jour : reconstruire toute la page ferait perdre
-  // l'image affichée et la quantité choisie.
   V.majMessage();
 };
 

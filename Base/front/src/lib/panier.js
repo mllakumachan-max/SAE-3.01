@@ -9,10 +9,34 @@
  * ([[majCompteurPanier]]) qui veulent le refléter.
  */
 
+import { postRequest } from "./api-request.js";
+
 const CLE_PANIER = "sae301:panier";
 
 /** Les callbacks prévenu à chaque changement du panier. */
 const abonnes = new Set();
+
+/**
+ * Envoie la liste des articles du panier à l'API pour vérifier que les
+ * quantités demandées ne dépassent pas le stock actuel en base de données.
+ *
+ * Le panier vivant dans le localStorage, le serveur ne le connaît pas : c'est
+ * le front qui lui transmet les lignes à contrôler.
+ *
+ * @param {Array<{id: number|string, quantite: number}>} lignes
+ * @returns {Promise<{valide: boolean, lignes: Array<{id, nom, stock, quantiteDemandee, quantiteMax, estValide, message}>, messages: Array<string>}>}
+ */
+export async function verifierStock(lignes) {
+  const reponse = await postRequest("panier/verifier-stock", { lignes });
+
+  return {
+    valide: reponse.valide === true,
+    lignes: reponse.lignes ?? [],
+    messages: (reponse.lignes ?? [])
+      .filter((ligne) => ligne.message)
+      .map((ligne) => ligne.message),
+  };
+}
 
 /**
  * Lit le panier. Un localStorage inaccessible (navigation privée, quota
@@ -37,7 +61,7 @@ export function lignesPanier() {
 /**
  * Écrit le panier et prévient les abonnés.
  */
-function ecrire(lignes) {
+export function ecrire(lignes) {
   try {
     window.localStorage.setItem(CLE_PANIER, JSON.stringify(lignes));
   } catch (erreur) {

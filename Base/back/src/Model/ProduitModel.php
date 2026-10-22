@@ -180,6 +180,38 @@ final class ProduitModel
     }
 
     /**
+     * Un produit par son identifiant, avec son nom et son stock actuel.
+     *
+     * Utilisé pour vérifier la disponibilité d'un article de panier contre
+     * la base de données (le stock peut avoir changé depuis le chargement de
+     * la page).
+     *
+     * @return array<string, mixed>|null Le produit, ou null s'il n'existe pas.
+     */
+    public function trouverParId(int $id): ?array
+    {
+        $requetePreparee = $this->pdo->prepare(
+            'SELECT PRODUIT.id, PRODUIT.nom, PRODUIT.stock
+               FROM PRODUIT
+              WHERE PRODUIT.id = :id'
+        );
+        $requetePreparee->bindValue(':id', $id, PDO::PARAM_INT);
+        $requetePreparee->execute();
+
+        $ligne = $requetePreparee->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return [
+            'id'    => (int) $ligne['id'],
+            'nom'   => $ligne['nom'],
+            'stock' => (int) $ligne['stock'],
+        ];
+    }
+
+    /**
      * Les images d'un produit, dans l'ordre d'affichage.
      */
     public function galerie(int $produitId): array

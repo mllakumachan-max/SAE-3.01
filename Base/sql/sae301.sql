@@ -257,6 +257,17 @@ VALUES
     ('3221613', 'boite-de-rangement-werckmann', 'Boîte de rangement Werckmann', 'Werckmann', '28 x 19,5 x 21,5 cm', 'Gardez toutes vos petites pièces bien rangées avec ce kit de rangement pratique avec 4 compartiments à séparateurs amovibles et couvercles transparents. Idéal pour les vis, les chevilles et autres matériaux de bricolage.', 9.99, 9.99, '€/pce', 'Nouveau', 4, 14),
     ('3218562', 'boite-de-forets-et-d-embouts-werckmann', 'Boîte de forets et d''embouts Werckmann', 'Werckmann', '29 pièces', 'Compacte et complète : cliquet, tournevis à double poignée en T, adaptateur, support magnétique, 9 douilles et 25 embouts, en Cr-V. Livrée dans une boîte de rangement pratique.', 5.99, 5.99, '€/pce', NULL, 4, 13);
 
+-- Stock de test pour les scénarios STK-c (contraintes de stock) :
+--   - stock = 0   -> produit épuisé, impossible à ajouter au panier
+--   - stock faible -> quantité limitée au stock disponible
+--   - stock suffisant -> ajout autorisé
+UPDATE PRODUIT SET stock = 0,    seuil_alerte = 5 WHERE reference = '3222863'; -- kit de nettoyage (épuisé)
+UPDATE PRODUIT SET stock = 2,    seuil_alerte = 5 WHERE reference = '3226353'; -- enceinte bluetooth (bientôt épuisé)
+UPDATE PRODUIT SET stock = 1,    seuil_alerte = 5 WHERE reference = '3224680'; -- câble silicone (quasi épuisé)
+UPDATE PRODUIT SET stock = 0,    seuil_alerte = 5 WHERE reference = '3226469'; -- câble HDMI (épuisé)
+UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '2578240'; -- support ordinateur (en stock)
+UPDATE PRODUIT SET stock = 50,   seuil_alerte = 5 WHERE reference = '3225765'; -- boîtier LED (en stock)
+
 -- Galeries
 -- ---------------------------------------------------------------------------
 INSERT INTO GALERIE
