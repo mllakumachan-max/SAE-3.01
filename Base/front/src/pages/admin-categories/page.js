@@ -2,9 +2,11 @@ import { AuthData } from "../../data/auth.js";
 import { CategorieData } from "../../data/categorie.js";
 import { ErreurApi } from "../../lib/api-request.js";
 import { htmlToFragment } from "../../lib/utils.js";
+import { BarreOutilsView } from "../../ui/barre-outils/index.js";
 import { FormulaireCategorieView } from "../../ui/forms-creer/Categorie/index.js";
 import { ConfirmationSuppressionCategorieView } from "../../ui/modales/Admin/suppressionCategorie/index.js";
 import { MessageView } from "../../ui/message/index.js";
+import { PaginationView } from "../../ui/pagination/index.js";
 import { TableauCategoriesView } from "../../ui/tableaux-recapitulatifs/Admin/categories/index.js";
 import template from "./template.html?raw";
 
@@ -23,6 +25,12 @@ const DESCRIPTION_MAX = 500;
 let M = {
   acces: null, // null (inconnu), "ok", "non-connecte" ou "refuse"
   categories: [], // catégories affichées dans le tableau
+  tri: "nom",
+  parPage: 12,
+  page: 1,
+  pagesTotal: 1,
+  total: 0,
+  toutesCategories: [], // liste complète disponible pour la réaffectation à la suppression
   message: null, // { type, texte }, ou null
   edition: null, // formulaire ouvert : { id, nom, description } ; id à null = création
   suppression: null, // catégorie en cours de suppression, ou null
@@ -33,9 +41,15 @@ let C = {};
 /**
  * Charge la liste. Le serveur décide de l'accès : 401, 403 ou la liste.
  */
-C.chargerCategories = async function () {
+C.chargerCategories = async function (page = M.page, tri = M.tri, parPage = M.parPage) {
   try {
-    M.categories = await CategorieData.fetchAdminListe();
+    let liste = await CategorieData.fetchAdminPage(page, tri, parPage);
+    M.categories = liste.categories;
+    M.tri = liste.tri;
+    M.parPage = liste.parPage;
+    M.page = liste.page;
+    M.pagesTotal = liste.pagesTotal;
+    M.total = liste.total;
     M.acces = "ok";
   } catch (erreur) {
     M.categories = [];
@@ -47,6 +61,22 @@ C.chargerCategories = async function () {
       M.message = { type: "erreur", texte: erreur.message };
     }
   }
+};
+
+C.handler_changerTri = async function (tri) {
+  await C.chargerCategories(1, tri, M.parPage);
+  V.rafraichir();
+};
+
+C.handler_changerParPage = async function (parPage) {
+  await C.chargerCategories(1, M.tri, parPage);
+  V.rafraichir();
+};
+
+C.handler_changerPage = async function (page) {
+  await C.chargerCategories(page, M.tri, M.parPage);
+  V.rafraichir();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
 C.trouverCategorie = function (id) {
@@ -114,9 +144,16 @@ C.handler_enregistrer = async function (valeurs) {
   V.rafraichir();
 };
 
-C.handler_demanderSuppression = function (id) {
+C.handler_demanderSuppression = async function (id) {
   const categorie = C.trouverCategorie(id);
   if (!categorie) return;
+  try {
+    M.toutesCategories = await CategorieData.fetchAdminListe(M.tri);
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+    V.rafraichir();
+    return;
+  }
   M.suppression = categorie;
   M.edition = null;
   M.message = null;
@@ -219,7 +256,7 @@ V.createPageFragment = function () {
             id: M.suppression.id,
             nom: M.suppression.nom,
             nbProduits: M.suppression.nbProduits,
-            categories: M.categories
+            categories: M.toutesCategories
               .filter((c) => c.id !== M.suppression.id)
               .map((c) => ({ id: c.id, nom: c.nom })),
           },
@@ -231,6 +268,27 @@ V.createPageFragment = function () {
       : ""
   );
 
+  pageFragment.querySelector('slot[name="barre-outils"]').replaceWith(
+    accesOk
+      ? BarreOutilsView.dom({
+          tri: M.tri,
+          parPage: M.parPage,
+          total: M.total,
+          libelleTotal: "catégories",
+          libelleParPage: "Catégories par page",
+          libelleUnite: "catégories",
+          optionsTri: [
+            { valeur: "nom", libelle: "Nom (A → Z)" },
+            { valeur: "produits_asc", libelle: "Nombre de produits (croissant)" },
+            { valeur: "produits_desc", libelle: "Nombre de produits (décroissant)" },
+          ],
+        }, {
+          surTri: C.handler_changerTri,
+          surParPage: C.handler_changerParPage,
+        })
+      : ""
+  );
+
   pageFragment.querySelector('slot[name="tableau"]').replaceWith(
     accesOk
       ? TableauCategoriesView.dom(M.categories, {
@@ -238,6 +296,10 @@ V.createPageFragment = function () {
           surSupprimer: C.handler_demanderSuppression,
         })
       : ""
+  );
+
+  pageFragment.querySelector('slot[name="pagination"]').replaceWith(
+    accesOk ? PaginationView.dom(M, { surPage: C.handler_changerPage }) : ""
   );
 
   return pageFragment;

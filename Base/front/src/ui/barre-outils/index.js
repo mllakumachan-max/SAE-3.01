@@ -6,7 +6,12 @@ import template from "./template.html?raw";
 // les changements par les fonctions reçues dans actions.
 let BarreOutilsView = {
   html: function (data) {
-    return genericRenderer(template, data);
+    return genericRenderer(template, {
+      libelleTotal: "produits",
+      libelleParPage: "Produits par page",
+      libelleUnite: "produits",
+      ...data,
+    });
   },
 
   /**
@@ -20,6 +25,14 @@ let BarreOutilsView = {
     let parPage = fragment.querySelector('select[name="parPage"]');
 
     if (tri) {
+      if (Array.isArray(data.optionsTri)) {
+        tri.replaceChildren(...data.optionsTri.map(({ valeur, libelle }) => {
+          let option = document.createElement("option");
+          option.value = valeur;
+          option.textContent = libelle;
+          return option;
+        }));
+      }
       tri.value = data.tri;
       tri.addEventListener("change", () => actions.surTri(tri.value));
     }

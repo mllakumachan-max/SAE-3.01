@@ -8,13 +8,13 @@
   </label>
 
   <label class="flex flex-col gap-2 text-14 font-medium">
-    Produits par page
+    {{libelleParPage}}
     <select name="parPage" class="h-9 min-w-44 rounded-md border bg-surface-default px-3 font-normal transition-colors hover:border-border-default border-border-default">
-      <option value="12">12 produits</option>
-      <option value="24">24 produits</option>
-      <option value="48">48 produits</option>
+      <option value="12">12 {{libelleUnite}}</option>
+      <option value="24">24 {{libelleUnite}}</option>
+      <option value="48">48 {{libelleUnite}}</option>
     </select>
   </label>
 
-  <span class="ml-auto text-14 text-text-secondary">{{total}} produits</span>
+  <span class="ml-auto text-14 text-text-secondary">{{total}} {{libelleTotal}}</span>
 </div>

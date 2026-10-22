@@ -3,9 +3,11 @@ import { CategorieData } from "../../data/categorie.js";
 import { ProduitData } from "../../data/produit.js";
 import { ErreurApi } from "../../lib/api-request.js";
 import { htmlToFragment } from "../../lib/utils.js";
+import { BarreOutilsView } from "../../ui/barre-outils/index.js";
 import { ProduitFormView } from "../../ui/forms-creer/Produit/index.js";
 import { MessageView } from "../../ui/message/index.js";
 import { ConfirmationSuppressionProduitView } from "../../ui/modales/Admin/suppressionProduit/index.js";
+import { PaginationView } from "../../ui/pagination/index.js";
 import { TableauProduitsView } from "../../ui/tableaux-recapitulatifs/Admin/produits/index.js";
 import template from "./template.html?raw";
 
@@ -21,6 +23,11 @@ const IMAGE_OCTETS_MAX = 5 * 1024 * 1024;
 let M = {
   acces: null, // null (inconnu), "ok", "non-connecte" ou "refuse"
   produits: [], // produits affichés dans le tableau
+  tri: "nom",
+  parPage: 12,
+  page: 1,
+  pagesTotal: 1,
+  total: 0,
   categories: [], // pour la liste déroulante du formulaire
   message: null, // { type, texte }, ou null
   edition: null, // formulaire ouvert : { id, valeurs, images } ; id à null = création
@@ -32,10 +39,12 @@ let C = {};
 /** Charge produits et catégories. Le serveur décide de l'accès. */
 C.chargerDonnees = async function () {
   try {
-    [M.produits, M.categories] = await Promise.all([
-      ProduitData.fetchAdminListe(),
+    let [liste, categories] = await Promise.all([
+      ProduitData.fetchAdminListe(1),
       CategorieData.fetchAdminListe(),
     ]);
+    C.appliquerListe(liste);
+    M.categories = categories;
     M.acces = "ok";
   } catch (erreur) {
     M.produits = [];
@@ -50,8 +59,42 @@ C.chargerDonnees = async function () {
   }
 };
 
-C.chargerProduits = async function () {
-  M.produits = await ProduitData.fetchAdminListe();
+C.appliquerListe = function (liste) {
+  M.produits = liste.produits;
+  M.tri = liste.tri;
+  M.parPage = liste.parPage;
+  M.page = liste.page;
+  M.pagesTotal = liste.pagesTotal;
+  M.total = liste.total;
+};
+
+C.chargerProduits = async function (page = M.page, reglages = { tri: M.tri, parPage: M.parPage }) {
+  C.appliquerListe(await ProduitData.fetchAdminListe(page, reglages));
+};
+
+C.changerListe = async function (page, reglages) {
+  try {
+    await C.chargerProduits(page, reglages);
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
+
+  V.rafraichir();
+};
+
+C.handler_changerTri = function (tri) {
+  return C.changerListe(1, { tri, parPage: M.parPage });
+};
+
+C.handler_changerParPage = function (parPage) {
+  return C.changerListe(1, { tri: M.tri, parPage });
+};
+
+C.handler_changerPage = function (page) {
+  return C.changerListe(page, { tri: M.tri, parPage: M.parPage }).then(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 };
 
 C.trouverProduit = function (id) {
@@ -307,6 +350,24 @@ V.createPageFragment = function () {
       : ""
   );
 
+  pageFragment.querySelector('slot[name="barre-outils"]').replaceWith(
+    accesOk
+      ? BarreOutilsView.dom({
+          ...M,
+          optionsTri: [
+            { valeur: "nom", libelle: "Nom (A → Z)" },
+            { valeur: "prix", libelle: "Prix (croissant)" },
+            { valeur: "categorie", libelle: "Catégorie (A → Z)" },
+            { valeur: "stock", libelle: "Stock (croissant)" },
+            { valeur: "etat", libelle: "État (épuisé en premier)" },
+          ],
+        }, {
+          surTri: C.handler_changerTri,
+          surParPage: C.handler_changerParPage,
+        })
+      : ""
+  );
+
   pageFragment.querySelector('slot[name="tableau"]').replaceWith(
     accesOk
       ? TableauProduitsView.dom(M.produits, {
@@ -314,6 +375,10 @@ V.createPageFragment = function () {
           surSupprimer: C.handler_demanderSuppression,
         })
       : ""
+  );
+
+  pageFragment.querySelector('slot[name="pagination"]').replaceWith(
+    accesOk ? PaginationView.dom(M, { surPage: C.handler_changerPage }) : ""
   );
 
   return pageFragment;

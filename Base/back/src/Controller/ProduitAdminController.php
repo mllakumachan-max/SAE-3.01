@@ -19,6 +19,16 @@ use GdImage;
  */
 final class ProduitAdminController
 {
+    private const TRIS = [
+        'nom'       => 'PRODUIT.nom ASC',
+        'prix'      => 'PRODUIT.prix ASC',
+        'categorie' => 'CATEGORIE.libelle ASC',
+        'stock'     => 'PRODUIT.stock ASC',
+        'etat'      => 'CASE WHEN PRODUIT.stock <= 0 THEN 0 WHEN PRODUIT.stock <= PRODUIT.seuil_alerte THEN 1 ELSE 2 END ASC',
+    ];
+
+    private const PAR_PAGE_AUTORISES = [12, 24, 48];
+
     private const NOM_MAX         = 160;
     private const REFERENCE_MAX   = 20;
     private const MARQUE_MAX      = 80;
@@ -52,7 +62,24 @@ final class ProduitAdminController
     {
         $this->exigerAdmin();
 
-        Response::json(['produits' => $this->produits->listerAdmin()]);
+        $tri = $requete->parametre('tri') ?? 'nom';
+        $parPage = (int) ($requete->parametre('parPage') ?? 12);
+        $tri = array_key_exists($tri, self::TRIS) ? $tri : 'nom';
+        $parPage = in_array($parPage, self::PAR_PAGE_AUTORISES, true) ? $parPage : 12;
+
+        $total = $this->produits->compter();
+        $pagesTotal = max(1, (int) ceil($total / $parPage));
+        $page = (int) ($requete->parametre('page', '1') ?? '1');
+        $page = max(1, min($page, $pagesTotal));
+
+        Response::json([
+            'produits' => $this->produits->listerAdmin(self::TRIS[$tri], $parPage, ($page - 1) * $parPage),
+            'tri' => $tri,
+            'parPage' => $parPage,
+            'page' => $page,
+            'pagesTotal' => $pagesTotal,
+            'total' => $total,
+        ]);
     }
 
     // POST /api/admin/produits  — corps : champs du produit (voir valider())

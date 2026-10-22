@@ -17,6 +17,14 @@ use App\Model\CategorieModel;
  */
 final class CategorieAdminController
 {
+    private const TRIS = [
+        'nom'          => 'CATEGORIE.libelle ASC',
+        'produits_asc' => 'nb_produits ASC',
+        'produits_desc'=> 'nb_produits DESC',
+    ];
+
+    private const PAR_PAGE_AUTORISES = [12, 24, 48];
+
     private const LIBELLE_MAX     = 100;
     private const DESCRIPTION_MAX = 500;
 
@@ -33,7 +41,34 @@ final class CategorieAdminController
     {
         $this->exigerAdmin();
 
-        Response::json(['categories' => $this->categories->listerToutes()]);
+        $tri = $requete->parametre('tri') ?? 'nom';
+        $tri = array_key_exists($tri, self::TRIS) ? $tri : 'nom';
+
+        $parPageBrut = $requete->parametre('parPage');
+        if ($parPageBrut === null) {
+            Response::json(['categories' => $this->categories->listerToutes(self::TRIS[$tri])]);
+            return;
+        }
+
+        $parPage = (int) $parPageBrut;
+        $parPage = in_array($parPage, self::PAR_PAGE_AUTORISES, true) ? $parPage : 12;
+        $total = $this->categories->compterToutes();
+        $pagesTotal = max(1, (int) ceil($total / $parPage));
+        $page = (int) ($requete->parametre('page', '1') ?? '1');
+        $page = max(1, min($page, $pagesTotal));
+
+        Response::json([
+            'categories' => $this->categories->listerToutes(
+                self::TRIS[$tri],
+                $parPage,
+                ($page - 1) * $parPage
+            ),
+            'tri' => $tri,
+            'parPage' => $parPage,
+            'page' => $page,
+            'pagesTotal' => $pagesTotal,
+            'total' => $total,
+        ]);
     }
 
     // POST /api/admin/categories  — corps : { libelle, description }

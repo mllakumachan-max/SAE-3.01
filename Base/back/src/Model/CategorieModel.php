@@ -83,7 +83,11 @@ final class CategorieModel
     /**
      * Toutes les catégories (racines et sous-catégories), pour le back-office.
      */
-    public function listerToutes(): array
+    public function listerToutes(
+        string $ordre = 'CATEGORIE.id ASC',
+        ?int $limite = null,
+        int $decalage = 0
+    ): array
     {
         $sql = 'SELECT CATEGORIE.id,
                        CATEGORIE.libelle,
@@ -95,12 +99,29 @@ final class CategorieModel
              LEFT JOIN PRODUIT ON PRODUIT.categorie_id = CATEGORIE.id
               GROUP BY CATEGORIE.id, CATEGORIE.libelle, CATEGORIE.slug,
                        CATEGORIE.description, CATEGORIE.parent_id
-              ORDER BY CATEGORIE.id ASC';
+              ORDER BY ' . $ordre . ', CATEGORIE.id ASC';
+
+        if ($limite !== null) {
+            $sql .= ' LIMIT :limite OFFSET :decalage';
+        }
+
+        $requete = $this->pdo->prepare($sql);
+
+        if ($limite !== null) {
+            $requete->bindValue(':limite', $limite, PDO::PARAM_INT);
+            $requete->bindValue(':decalage', $decalage, PDO::PARAM_INT);
+        }
 
         return array_map(
             fn (array $ligne): array => $this->formater($ligne),
-            $this->pdo->query($sql)->fetchAll()
+            $requete->execute() ? $requete->fetchAll() : []
         );
+    }
+
+    /** Nombre total de catégories, racines et sous-catégories. */
+    public function compterToutes(): int
+    {
+        return (int) $this->pdo->query('SELECT COUNT(*) FROM CATEGORIE')->fetchColumn();
     }
 
     /**

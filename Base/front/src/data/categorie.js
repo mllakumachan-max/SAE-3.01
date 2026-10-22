@@ -25,9 +25,16 @@ let CategorieData = {
   /**
    * Liste toutes les catégories pour l'administrateur (GET /api/admin/categories).
    */
-  fetchAdminListe: async function () {
-    let reponse = await getRequest("admin/categories");
+  fetchAdminListe: async function (tri = "nom") {
+    let reponse = await getRequest(`admin/categories?tri=${encodeURIComponent(tri)}`);
     return reponse.categories.map(versVue);
+  },
+
+  /** Liste paginée des catégories pour leur écran de gestion Admin. */
+  fetchAdminPage: async function (page, tri, parPage) {
+    let uri = `admin/categories?page=${page}&tri=${encodeURIComponent(tri)}&parPage=${parPage}`;
+    let reponse = await getRequest(uri);
+    return { ...reponse, categories: reponse.categories.map(versVue) };
   },
 
   /**

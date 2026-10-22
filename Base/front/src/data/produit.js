@@ -1,5 +1,5 @@
 
-import { getRequest } from "../lib/api-request.js";
+import { deleteRequest, getRequest, postRequest, putRequest } from "../lib/api-request.js";
 import { urlImage } from "../lib/images.js";
 
 let ProduitData = {};
@@ -104,11 +104,17 @@ function versVueAdmin(produit) {
 }
 
 /**
- * Liste tous les produits pour l'administrateur : GET /api/admin/produits
+ * Liste paginée des produits pour l'administrateur : GET /api/admin/produits
  */
-ProduitData.fetchAdminListe = async function () {
-  let reponse = await getRequest("admin/produits");
-  return reponse.produits.map(versVueAdmin);
+ProduitData.fetchAdminListe = async function (page = 1, reglages) {
+  let uri = `admin/produits?page=${page}`;
+
+  if (reglages !== undefined) {
+    uri += `&tri=${encodeURIComponent(reglages.tri)}&parPage=${reglages.parPage}`;
+  }
+
+  let reponse = await getRequest(uri);
+  return { ...reponse, produits: reponse.produits.map(versVueAdmin) };
 };
 
 /**

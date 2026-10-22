@@ -260,18 +260,25 @@ final class ProduitModel
      *
      * @return list<array<string, mixed>>
      */
-    public function listerAdmin(): array
+    public function listerAdmin(string $ordre, int $limite, int $decalage): array
     {
         $sql = 'SELECT ' . self::COLONNES_ADMIN . '
                   FROM PRODUIT
             INNER JOIN CATEGORIE ON CATEGORIE.id = PRODUIT.categorie_id
-              ORDER BY PRODUIT.id ASC';
+              ORDER BY ' . $ordre . ', PRODUIT.id
+                 LIMIT :limite OFFSET :decalage';
 
-        $images = $this->imagesParProduit();
+        $requete = $this->pdo->prepare($sql);
+        $requete->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $requete->bindValue(':decalage', $decalage, PDO::PARAM_INT);
+        $requete->execute();
+        $lignes = $requete->fetchAll();
+        $identifiants = array_map(static fn (array $ligne): int => (int) $ligne['id'], $lignes);
+        $images = $identifiants === [] ? [] : $this->imagesParProduit(null, $identifiants);
 
         return array_map(
             fn (array $ligne): array => $this->formaterAdmin($ligne, $images[(int) $ligne['id']] ?? []),
-            $this->pdo->query($sql)->fetchAll()
+            $lignes
         );
     }
 
@@ -454,12 +461,15 @@ final class ProduitModel
      *
      * @return array<int, list<array{id: int, chemin: string, texte_alternatif: ?string}>>
      */
-    private function imagesParProduit(?int $produitId = null): array
+    private function imagesParProduit(?int $produitId = null, array $produitIds = []): array
     {
         $sql = 'SELECT id, produit_id, chemin, texte_alternatif FROM GALERIE';
 
         if ($produitId !== null) {
             $sql .= ' WHERE produit_id = :produit';
+        } elseif ($produitIds !== []) {
+            $parametres = array_map(static fn (int $index): string => ':produit_' . $index, array_keys($produitIds));
+            $sql .= ' WHERE produit_id IN (' . implode(', ', $parametres) . ')';
         }
 
         $sql .= ' ORDER BY ordre ASC, id ASC';
@@ -468,6 +478,10 @@ final class ProduitModel
 
         if ($produitId !== null) {
             $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        } elseif ($produitIds !== []) {
+            foreach (array_values($produitIds) as $index => $id) {
+                $requete->bindValue(':produit_' . $index, (int) $id, PDO::PARAM_INT);
+            }
         }
 
         $requete->execute();
