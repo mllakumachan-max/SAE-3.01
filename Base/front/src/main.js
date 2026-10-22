@@ -4,6 +4,7 @@ import { CataloguePage } from "./pages/catalogue/page.js";
 import { ProduitPage } from "./pages/produit/page.js";
 import { AdminPage } from "./pages/admin/page.js";
 import { AdminCategoriesPage } from "./pages/admin-categories/page.js";
+import { AdminProduitsPage } from "./pages/admin-produits/page.js";
 // import { PanierPage } from "./pages/panier/page.js";
 import { The404Page } from "./pages/404/page.js";
 import icons from "./icons.html?raw";
@@ -25,7 +26,7 @@ router.addRoute("/produit/:slug", ProduitPage);
 
 router.addRoute("/admin", AdminPage);
 router.addRoute("/admin/categories", AdminCategoriesPage);
-
+router.addRoute("/admin/produits", AdminProduitsPage);
 // En dernier : toute adresse qui ne correspond à aucune route.
 router.addRoute("*", The404Page);
 

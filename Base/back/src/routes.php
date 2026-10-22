@@ -6,6 +6,7 @@ use App\Controller\AuthController;
 use App\Controller\CategorieAdminController;
 use App\Controller\CategorieController;
 use App\Controller\CatalogueController;
+use App\Controller\ProduitAdminController;
 use App\Controller\ProduitController;
 use App\Controller\StatsController;
 
@@ -24,11 +25,28 @@ use App\Controller\StatsController;
  */
 
 return [
-    'GET  /api/produits'    => [CatalogueController::class, 'index'],
-    'GET  /api/produits/:slug' => [ProduitController::class,  'detail'],
-    'GET  /api/categories'  => [CategorieController::class, 'index'],
-    'POST /api/login'       => [AuthController::class,      'login'],
-    'POST /api/logout'      => [AuthController::class,      'logout'],
-    'GET  /api/admin/categories' => [CategorieAdminController::class,     'index'],
-    'GET  /api/admin/stats' => [StatsController::class,     'index'],
+    // GET
+    'GET  /api/produits'            => [CatalogueController::class, 'index'],
+    'GET  /api/produits/:slug'      => [ProduitController::class,  'detail'],
+    'GET  /api/categories'          => [CategorieController::class, 'index'],
+    'GET  /api/admin/categories'    => [CategorieAdminController::class,     'index'],
+    'GET  /api/admin/produits'      => [ProduitAdminController::class, 'index'],
+    'GET  /api/admin/stats'         => [StatsController::class,     'index'],
+
+    // POST
+    'POST /api/login'                       => [AuthController::class,      'login'],
+    'POST /api/logout'                      => [AuthController::class,      'logout'],
+    'POST /api/admin/categories'            => [CategorieAdminController::class,     'creer'],
+    'POST /api/admin/produits'              => [ProduitAdminController::class, 'creer'],
+    'POST /api/admin/produits/:id/images'   => [ProduitAdminController::class, 'ajouterImage'],
+
+    // PUT
+    'PUT  /api/admin/categories/:id'    => [CategorieAdminController::class, 'modifier'],
+    'PUT  /api/admin/produits/:id'      => [ProduitAdminController::class, 'modifier'],
+
+    // DELETE
+    'DELETE /api/admin/categories/:id'                  => [CategorieAdminController::class, 'supprimer'],
+    'DELETE /api/admin/produits/:id'                    => [ProduitAdminController::class, 'supprimer'],
+    'DELETE /api/admin/produits/:id/images/:imageId'    => [ProduitAdminController::class, 'supprimerImage'],
+
 ];

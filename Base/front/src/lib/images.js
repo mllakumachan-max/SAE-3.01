@@ -25,5 +25,7 @@ const IMAGES = import.meta.glob("../images/**/*.{avif,png,jpg,jpeg,webp}", {
  */
 export function urlImage(chemin) {
   if (!chemin) return "";
+  // Image téléversée (GOF-a) : elle vit dans uploads/, à côté de l'application.
+  if (chemin.startsWith("uploads/")) return import.meta.env.BASE_URL + chemin;
   return IMAGES[`../images/${chemin}`] ?? "";
 }

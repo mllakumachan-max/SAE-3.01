@@ -1,46 +1,104 @@
-<section class="mb-6 rounded-lg border bg-surface-default p-6 shadow-xs border-border-default c-details-forms-produit">
+<section class="mb-6 rounded-lg border bg-surface-default p-6 shadow-xs border-border-default c-formulaires-forms-produit">
     <h2 class="mb-4 text-24 font-semibold tracking-tight text-text-primary">{{titre}}</h2>
+
     <form class="flex flex-col gap-4" novalidate>
         <p data-zone="message" role="alert" class="hidden rounded-md border border-status-warning-indicator p-3 text-14 text-status-warning-text"></p>
 
-        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-        Nom du produit
-        <input name="nom" type="text" required value="{{nom}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
-        </label>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Nom du produit
+                <input name="nom" type="text" required maxlength="160" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
 
-        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-        Catégorie
-        <select name="categorieId" required data-zone="categories" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary"></select>
-        </label>
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Référence
+                <input name="reference" type="text" maxlength="20" placeholder="Générée si vide" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
 
-        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-        Description
-        <textarea name="description" rows="4" class="rounded-md border bg-surface-default px-3 py-2 text-14 font-normal border-border-default text-text-primary">{{description}}</textarea>
-        </label>
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Catégorie
+                <select name="categorieId" required data-zone="categories" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary"></select>
+            </label>
 
-        <div class="grid gap-4 sm:grid-cols-3">
-        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-            Prix (€)
-            <input name="prix" type="number" min="0" step="0.01" required value="{{prix}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
-        </label>
-        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-            Stock
-            <input name="stock" type="number" min="0" step="1" required value="{{stock}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
-        </label>
-        <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-            Seuil « Bientôt épuisé »
-            <input name="seuilAlerte" type="number" min="0" step="1" required value="{{seuilAlerte}}" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
-        </label>
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Marque
+                <input name="marque" type="text" maxlength="80" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Format
+                <input name="format" type="text" maxlength="120" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Badge
+                <input name="badge" type="text" maxlength="40" placeholder="Nouveau, Promo…" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
         </div>
 
         <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
-        Image du produit
-        <input name="image" type="file" accept="image/*" class="text-14 font-normal" />
+            Description
+            <textarea name="description" rows="4" maxlength="2000" class="rounded-md border bg-surface-default px-3 py-2 text-14 font-normal border-border-default text-text-primary"></textarea>
         </label>
 
+        <div class="grid gap-4 sm:grid-cols-3">
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Prix (€)
+                <input name="prix" type="number" min="0" max="9999.99" step="0.01" required class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Prix unitaire (€)
+                <input name="prixUnitaire" type="number" min="0" max="9999.99" step="0.01" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Unité de prix
+                <input name="unitePrix" type="text" maxlength="10" placeholder="€/m²" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Stock
+                <input name="stock" type="number" min="0" max="65535" step="1" required class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+
+            <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+                Seuil « Bientôt épuisé »
+                <input name="seuilAlerte" type="number" min="0" max="255" step="1" required class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+            </label>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <p class="text-14 font-medium text-text-primary">Images actuelles</p>
+            <ul data-zone="images" class="flex flex-wrap gap-3">
+                <li data-zone="images-vide" class="text-14 text-text-secondary">Aucune image pour le moment.</li>
+            </ul>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <p class="text-14 font-medium text-text-primary">Ajouter une image</p>
+            <label data-zone="depot-image" class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border-default bg-surface-subtle p-5 text-center hover:border-border-strong focus-within:outline-2 focus-within:outline-border-focus">
+                <input name="image" type="file" accept="image/avif,image/jpeg,image/png,image/webp" data-zone="fichier-image" class="sr-only" />
+                <svg aria-hidden="true" class="size-6 text-text-secondary" viewBox="0 0 24 24" fill="currentColor">
+                    <use href="#icon-download"></use>
+                </svg>
+                <span class="text-14 text-text-primary">Glissez une image ici ou <span class="text-text-link underline">parcourir</span></span>
+                <span class="text-12 text-text-secondary">AVIF, JPG/JPEG, PNG ou WebP · 5 Mo maximum</span>
+            </label>
+            <div data-zone="fichier-selectionne" class="hidden items-center justify-between gap-3 rounded-md border border-border-default bg-surface-default p-3">
+                <div class="flex min-w-0 flex-col">
+                    <span data-zone="nom-fichier" class="truncate text-14 font-medium text-text-primary"></span>
+                    <span data-zone="taille-fichier" class="text-12 text-text-secondary"></span>
+                </div>
+                <button type="button" data-action="retirer-image" aria-label="Retirer l'image sélectionnée" class="shrink-0 rounded-md px-3 py-2 text-14 text-text-secondary hover:bg-surface-subtle">Retirer</button>
+            </div>
+        </div>
+
         <div class="mt-2 flex justify-end gap-3">
-        <button type="button" data-action="annuler" class="h-10 rounded-md border px-4 text-14 font-medium text-text-secondary hover:bg-surface-subtle border-border-default">Annuler</button>
-        <button type="submit" class="h-10 rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text hover:opacity-90">Enregistrer</button>
+            <button type="button" data-action="annuler" class="h-10 rounded-md border px-4 text-14 font-medium text-text-secondary hover:bg-surface-subtle border-border-default">Annuler</button>
+            <button type="submit" class="h-10 rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text hover:opacity-90">Enregistrer</button>
         </div>
     </form>
 </section>

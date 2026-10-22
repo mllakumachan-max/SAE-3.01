@@ -237,4 +237,297 @@ final class ProduitModel
             'parCategorie'  => $categories,
         ];
     }
+
+    // -----------------------------------------------------------------------
+    // Gestion des produits par l'administrateur
+    // -----------------------------------------------------------------------
+
+    /** Colonnes écrites par le back-office (le slug est fixé à la création). */
+    private const COLONNES_ECRITURE = [
+        'reference', 'nom', 'marque', 'format', 'description', 'prix',
+        'prix_unitaire', 'unite_prix', 'badge', 'stock', 'seuil_alerte', 'categorie_id',
+    ];
+
+    /** Colonnes lues par le back-office. */
+    private const COLONNES_ADMIN = 'PRODUIT.id, PRODUIT.reference, PRODUIT.slug, PRODUIT.nom,
+            PRODUIT.marque, PRODUIT.format, PRODUIT.description, PRODUIT.prix,
+            PRODUIT.prix_unitaire, PRODUIT.unite_prix, PRODUIT.badge,
+            PRODUIT.stock, PRODUIT.seuil_alerte, PRODUIT.categorie_id,
+            CATEGORIE.libelle AS categorie';
+
+    /**
+     * Tous les produits, avec leur catégorie et leurs images.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function listerAdmin(): array
+    {
+        $sql = 'SELECT ' . self::COLONNES_ADMIN . '
+                  FROM PRODUIT
+            INNER JOIN CATEGORIE ON CATEGORIE.id = PRODUIT.categorie_id
+              ORDER BY PRODUIT.id ASC';
+
+        $images = $this->imagesParProduit();
+
+        return array_map(
+            fn (array $ligne): array => $this->formaterAdmin($ligne, $images[(int) $ligne['id']] ?? []),
+            $this->pdo->query($sql)->fetchAll()
+        );
+    }
+
+    /** Un produit du back-office, ou null s'il n'existe pas. */
+    public function trouverAdminParId(int $id): ?array
+    {
+        $requete = $this->pdo->prepare(
+            'SELECT ' . self::COLONNES_ADMIN . '
+               FROM PRODUIT
+         INNER JOIN CATEGORIE ON CATEGORIE.id = PRODUIT.categorie_id
+              WHERE PRODUIT.id = :id'
+        );
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+
+        $ligne = $requete->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return $this->formaterAdmin($ligne, $this->imagesParProduit($id)[$id] ?? []);
+    }
+
+    /** La référence est-elle déjà prise par un autre produit ? */
+    public function referenceExiste(string $reference, ?int $ignorerId = null): bool
+    {
+        $requete = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM PRODUIT WHERE reference = :reference AND id <> :ignorer'
+        );
+        $requete->bindValue(':reference', $reference, PDO::PARAM_STR);
+        $requete->bindValue(':ignorer', $ignorerId ?? 0, PDO::PARAM_INT);
+        $requete->execute();
+
+        return (int) $requete->fetchColumn() > 0;
+    }
+
+    /** Le slug est-il déjà utilisé par un autre produit ? */
+    public function slugExiste(string $slug, ?int $ignorerId = null): bool
+    {
+        $requete = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM PRODUIT WHERE slug = :slug AND id <> :ignorer'
+        );
+        $requete->bindValue(':slug', $slug, PDO::PARAM_STR);
+        $requete->bindValue(':ignorer', $ignorerId ?? 0, PDO::PARAM_INT);
+        $requete->execute();
+
+        return (int) $requete->fetchColumn() > 0;
+    }
+
+    /**
+     * Crée un produit. Renvoie son identifiant.
+     *
+     * @param array<string, mixed> $donnees Valeurs validées par le contrôleur.
+     */
+    public function creer(array $donnees): int
+    {
+        $requete = $this->pdo->prepare(
+            'INSERT INTO PRODUIT
+                (reference, slug, nom, marque, format, description, prix, prix_unitaire,
+                 unite_prix, badge, stock, seuil_alerte, categorie_id)
+             VALUES
+                (:reference, :slug, :nom, :marque, :format, :description, :prix, :prix_unitaire,
+                 :unite_prix, :badge, :stock, :seuil_alerte, :categorie_id)'
+        );
+        $this->lier($requete, $donnees, [...self::COLONNES_ECRITURE, 'slug']);
+        $requete->execute();
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Modifie un produit. Le slug n'est pas modifié : il entre dans l'adresse publique.
+     *
+     * @param array<string, mixed> $donnees Valeurs validées par le contrôleur.
+     */
+    public function modifier(int $id, array $donnees): void
+    {
+        $requete = $this->pdo->prepare(
+            'UPDATE PRODUIT SET
+                reference = :reference, nom = :nom, marque = :marque, format = :format,
+                description = :description, prix = :prix, prix_unitaire = :prix_unitaire,
+                unite_prix = :unite_prix, badge = :badge, stock = :stock,
+                seuil_alerte = :seuil_alerte, categorie_id = :categorie_id
+              WHERE id = :id'
+        );
+        $this->lier($requete, $donnees, self::COLONNES_ECRITURE);
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+    }
+
+    /**
+     * Supprime un produit et sa galerie dans une seule transaction.
+     *
+     * Renvoie les chemins des images supprimées, pour que le contrôleur
+     * efface les fichiers correspondants.
+     *
+     * @return list<string>
+     */
+    public function supprimer(int $id): array
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $chemins = array_column($this->imagesParProduit($id)[$id] ?? [], 'chemin');
+
+            $requete = $this->pdo->prepare('DELETE FROM GALERIE WHERE produit_id = :id');
+            $requete->bindValue(':id', $id, PDO::PARAM_INT);
+            $requete->execute();
+
+            $requete = $this->pdo->prepare('DELETE FROM PRODUIT WHERE id = :id');
+            $requete->bindValue(':id', $id, PDO::PARAM_INT);
+            $requete->execute();
+
+            $this->pdo->commit();
+
+            return $chemins;
+        } catch (\Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+    }
+
+    /** Nombre d'images de la galerie d'un produit. */
+    public function compterImages(int $produitId): int
+    {
+        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM GALERIE WHERE produit_id = :produit');
+        $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        $requete->execute();
+
+        return (int) $requete->fetchColumn();
+    }
+
+    /** Ajoute une image à la galerie. Renvoie son identifiant. */
+    public function ajouterImage(int $produitId, string $chemin, ?string $texteAlternatif, int $ordre): int
+    {
+        $requete = $this->pdo->prepare(
+            'INSERT INTO GALERIE (chemin, produit_id, ordre, texte_alternatif)
+             VALUES (:chemin, :produit, :ordre, :alternatif)'
+        );
+        $requete->bindValue(':chemin', $chemin, PDO::PARAM_STR);
+        $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
+        $requete->bindValue(':alternatif', $texteAlternatif, $texteAlternatif === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+        $requete->execute();
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /** Une image de galerie par son identifiant, ou null. */
+    public function trouverImage(int $imageId): ?array
+    {
+        $requete = $this->pdo->prepare('SELECT id, produit_id, chemin FROM GALERIE WHERE id = :id');
+        $requete->bindValue(':id', $imageId, PDO::PARAM_INT);
+        $requete->execute();
+
+        $ligne = $requete->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return [
+            'id'         => (int) $ligne['id'],
+            'produit_id' => (int) $ligne['produit_id'],
+            'chemin'     => $ligne['chemin'],
+        ];
+    }
+
+    /** Supprime une image de la galerie (le fichier est effacé par le contrôleur). */
+    public function supprimerImage(int $imageId): void
+    {
+        $requete = $this->pdo->prepare('DELETE FROM GALERIE WHERE id = :id');
+        $requete->bindValue(':id', $imageId, PDO::PARAM_INT);
+        $requete->execute();
+    }
+
+    /**
+     * Images de la galerie, groupées par identifiant de produit.
+     *
+     * @return array<int, list<array{id: int, chemin: string, texte_alternatif: ?string}>>
+     */
+    private function imagesParProduit(?int $produitId = null): array
+    {
+        $sql = 'SELECT id, produit_id, chemin, texte_alternatif FROM GALERIE';
+
+        if ($produitId !== null) {
+            $sql .= ' WHERE produit_id = :produit';
+        }
+
+        $sql .= ' ORDER BY ordre ASC, id ASC';
+
+        $requete = $this->pdo->prepare($sql);
+
+        if ($produitId !== null) {
+            $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        }
+
+        $requete->execute();
+
+        $groupes = [];
+
+        foreach ($requete->fetchAll() as $image) {
+            $groupes[(int) $image['produit_id']][] = [
+                'id'               => (int) $image['id'],
+                'chemin'           => $image['chemin'],
+                'texte_alternatif' => $image['texte_alternatif'],
+            ];
+        }
+
+        return $groupes;
+    }
+
+    /** Convertit une ligne du back-office : nombres en entiers, images incluses. */
+    private function formaterAdmin(array $ligne, array $images): array
+    {
+        return [
+            'id'            => (int) $ligne['id'],
+            'reference'     => $ligne['reference'],
+            'slug'          => $ligne['slug'],
+            'nom'           => $ligne['nom'],
+            'marque'        => $ligne['marque'],
+            'format'        => $ligne['format'],
+            'description'   => $ligne['description'],
+            // Les DECIMAL restent en texte, comme dans le reste de l'API.
+            'prix'          => $ligne['prix'],
+            'prix_unitaire' => $ligne['prix_unitaire'],
+            'unite_prix'    => $ligne['unite_prix'],
+            'badge'         => $ligne['badge'],
+            'stock'         => (int) $ligne['stock'],
+            'seuil_alerte'  => (int) $ligne['seuil_alerte'],
+            'categorie_id'  => (int) $ligne['categorie_id'],
+            'categorie'     => $ligne['categorie'],
+            'images'        => $images,
+        ];
+    }
+
+    /**
+     * Lie les valeurs demandées. PDO exige que chaque paramètre de la requête
+     * soit lié ; $cles doit donc correspondre exactement aux colonnes de la requête.
+     *
+     * @param array<string, mixed> $donnees
+     * @param list<string>         $cles
+     */
+    private function lier(\PDOStatement $requete, array $donnees, array $cles): void
+    {
+        foreach ($cles as $cle) {
+            $valeur = $donnees[$cle] ?? null;
+
+            $type = match (true) {
+                $valeur === null => PDO::PARAM_NULL,
+                is_int($valeur)  => PDO::PARAM_INT,
+                default          => PDO::PARAM_STR,
+            };
+
+            $requete->bindValue(':' . $cle, $valeur, $type);
+        }
+    }
 }

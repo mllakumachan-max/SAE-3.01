@@ -21,6 +21,7 @@ use App\Controller\AuthController;
 use App\Controller\CategorieAdminController;
 use App\Controller\CategorieController;
 use App\Controller\CatalogueController;
+use App\Controller\ProduitAdminController;
 use App\Controller\ProduitController;
 use App\Controller\StatsController;
 
@@ -71,11 +72,12 @@ try {
             new CategorieModel($pdo),
             $config['chemin']
         ),
-        CategorieController::class => new CategorieController(new CategorieModel($pdo)),
+        CategorieController::class      => new CategorieController(new CategorieModel($pdo)),
         CategorieAdminController::class => new CategorieAdminController(new CategorieModel($pdo)),
-        ProduitController::class   => new ProduitController(new ProduitModel($pdo)),
-        AuthController::class      => new AuthController(),
-        StatsController::class     => new StatsController(new ProduitModel($pdo)),
+        ProduitController::class        => new ProduitController(new ProduitModel($pdo)),
+        AuthController::class           => new AuthController(),
+        ProduitAdminController::class   => new ProduitAdminController(new ProduitModel($pdo), new CategorieModel($pdo)),
+        StatsController::class          => new StatsController(new ProduitModel($pdo)),
     ];
 
     $routes = require __DIR__ . '/src/routes.php';

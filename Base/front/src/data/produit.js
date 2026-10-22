@@ -74,4 +74,81 @@ ProduitData.fetchBySlug = async function (slug) {
   };
 };
 
+/**
+ * Traduit un produit du back-office vers les noms utilisés par les formulaires
+ * et les tableaux. Les DECIMAL, reçus en texte, deviennent des nombres.
+ */
+function versVueAdmin(produit) {
+  return {
+    id: produit.id,
+    reference: produit.reference,
+    slug: produit.slug,
+    nom: produit.nom,
+    categorieId: produit.categorie_id,
+    categorie: produit.categorie,
+    marque: produit.marque ?? "",
+    format: produit.format ?? "",
+    description: produit.description ?? "",
+    prix: Number(produit.prix),
+    prixUnitaire: produit.prix_unitaire === null ? "" : Number(produit.prix_unitaire),
+    unitePrix: produit.unite_prix ?? "",
+    badge: produit.badge ?? "",
+    stock: produit.stock,
+    seuilAlerte: produit.seuil_alerte,
+    images: (produit.images ?? []).map((image) => ({
+      id: image.id,
+      src: urlImage(image.chemin),
+      alt: image.texte_alternatif ?? "",
+    })),
+  };
+}
+
+/**
+ * Liste tous les produits pour l'administrateur : GET /api/admin/produits
+ */
+ProduitData.fetchAdminListe = async function () {
+  let reponse = await getRequest("admin/produits");
+  return reponse.produits.map(versVueAdmin);
+};
+
+/**
+ * Crée un produit : POST /api/admin/produits. donnees : champs en snake_case.
+ */
+ProduitData.creer = async function (donnees) {
+  let reponse = await postRequest("admin/produits", donnees);
+  return versVueAdmin(reponse.produit);
+};
+
+/**
+ * Modifie un produit : PUT /api/admin/produits/:id
+ */
+ProduitData.modifier = async function (id, donnees) {
+  let reponse = await putRequest(`admin/produits/${encodeURIComponent(id)}`, donnees);
+  return versVueAdmin(reponse.produit);
+};
+
+/**
+ * Supprime un produit : DELETE /api/admin/produits/:id
+ */
+ProduitData.supprimer = function (id) {
+  return deleteRequest(`admin/produits/${encodeURIComponent(id)}`);
+};
+
+/**
+ * Ajoute une image : POST /api/admin/produits/:id/images
+ * donnees : { image: "data:image/…;base64,…", texte_alternatif }
+ */
+ProduitData.ajouterImage = function (id, donnees) {
+  return postRequest(`admin/produits/${encodeURIComponent(id)}/images`, donnees);
+};
+
+/**
+ * Supprime une image : DELETE /api/admin/produits/:id/images/:imageId
+ */
+ProduitData.supprimerImage = function (id, imageId) {
+  return deleteRequest(
+    `admin/produits/${encodeURIComponent(id)}/images/${encodeURIComponent(imageId)}`
+  );
+};
+
 export { ProduitData };
