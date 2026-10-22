@@ -3,6 +3,7 @@ import { CategorieData } from "../../data/categorie.js";
 import { ProduitData } from "../../data/produit.js";
 import { ErreurApi } from "../../lib/api-request.js";
 import { htmlToFragment } from "../../lib/utils.js";
+import { definirAdminConnecte } from "../../lib/admin-session.js";
 import { BarreOutilsView } from "../../ui/barre-outils/index.js";
 import { ProduitFormView } from "../../ui/forms-creer/Produit/index.js";
 import { MessageView } from "../../ui/message/index.js";
@@ -46,13 +47,16 @@ C.chargerDonnees = async function () {
     C.appliquerListe(liste);
     M.categories = categories;
     M.acces = "ok";
+    definirAdminConnecte(true);
   } catch (erreur) {
     M.produits = [];
     M.categories = [];
     if (erreur instanceof ErreurApi && erreur.statut === 401) {
       M.acces = "non-connecte";
+      definirAdminConnecte(false);
     } else if (erreur instanceof ErreurApi && erreur.statut === 403) {
       M.acces = "refuse";
+      definirAdminConnecte(false);
     } else {
       M.message = { type: "erreur", texte: erreur.message };
     }
@@ -280,11 +284,13 @@ C.handler_deconnexion = async function () {
   }
 
   M.acces = "non-connecte";
+  definirAdminConnecte(false);
   M.produits = [];
   M.categories = [];
   M.edition = null;
   M.suppression = null;
   V.rafraichir();
+  document.dispatchEvent(new Event("admin:deconnexion-terminee"));
 };
 
 document.addEventListener("admin:deconnexion", C.handler_deconnexion);
@@ -318,10 +324,12 @@ V.rafraichir = function () {
 V.createPageFragment = function () {
   let pageFragment = htmlToFragment(template);
   let accesOk = M.acces === "ok";
+  let editionEnCours = M.edition !== null;
 
   let boutonCreer = pageFragment.querySelector('[data-action="creer"]');
-  boutonCreer.hidden = !accesOk;
+  boutonCreer.hidden = !accesOk || editionEnCours;
   boutonCreer.addEventListener("click", C.handler_ouvrirCreation);
+  pageFragment.querySelector('[data-zone="entete"]').hidden = editionEnCours;
 
   pageFragment.querySelector('[data-zone="acces"]').hidden = accesOk;
 
@@ -351,7 +359,7 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="barre-outils"]').replaceWith(
-    accesOk
+    accesOk && !editionEnCours
       ? BarreOutilsView.dom({
           ...M,
           optionsTri: [
@@ -369,7 +377,7 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="tableau"]').replaceWith(
-    accesOk
+    accesOk && !editionEnCours
       ? TableauProduitsView.dom(M.produits, {
           surModifier: C.handler_ouvrirModification,
           surSupprimer: C.handler_demanderSuppression,
@@ -378,7 +386,7 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="pagination"]').replaceWith(
-    accesOk ? PaginationView.dom(M, { surPage: C.handler_changerPage }) : ""
+    accesOk && !editionEnCours ? PaginationView.dom(M, { surPage: C.handler_changerPage }) : ""
   );
 
   return pageFragment;

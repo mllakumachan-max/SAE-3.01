@@ -63,7 +63,8 @@ test.describe("US GOF-b — Back-office", () => {
     // L'en-tête de l'administration est celui du back-office, pas celui de la
     // boutique.
     await expect(page.getByRole("link", { name: /Administration/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Tableau de bord" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Tableau de bord" })).toHaveCount(0);
+    await expect(page.locator('[data-action="deconnexion"]')).toBeHidden();
 
     // La boutique, elle, n'est pas là.
     await expect(page.getByRole("link", { name: "Panier" })).toHaveCount(0);
@@ -119,6 +120,7 @@ test.describe("US GOF-b — Back-office", () => {
 
   test("CA — La navigation entre les sections d'administration est claire", async ({ page }) => {
     await aller(page, "admin");
+    await seConnecter(page, COMPTES.admin.login, COMPTES.admin.mdp);
 
     const menu = page.locator("header nav");
 
@@ -188,11 +190,19 @@ test.describe("US GOF-b — Back-office", () => {
     // Avec une session d'administrateur : l'accès est accordé.
     await seConnecter(page, COMPTES.admin.login, COMPTES.admin.mdp);
     await expect(page.getByText("Produits au catalogue", { exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Tableau de bord" })).toBeVisible();
+    await expect(page.locator('[data-action="deconnexion"]')).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Connexion administrateur" })).toHaveCount(0);
+    await expect(page.locator('input[name="login"]')).toHaveCount(0);
     expect((await api(page, "admin/stats")).statut).toBe(200);
 
     // Après la déconnexion, l'accès est de nouveau coupé.
     await page.locator('[data-action="deconnexion"]').click();
+    await expect(page).toHaveURL(url("admin"));
     await expect(page.getByRole("heading", { name: "Connexion administrateur" })).toBeVisible();
+    await expect(page.locator('input[name="login"]')).toBeVisible();
+    await expect(page.getByRole("link", { name: "Tableau de bord" })).toHaveCount(0);
+    await expect(page.locator('[data-action="deconnexion"]')).toBeHidden();
     expect((await api(page, "admin/stats")).statut).toBe(403);
   });
 });

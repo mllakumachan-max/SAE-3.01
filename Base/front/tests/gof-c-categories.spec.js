@@ -96,6 +96,22 @@ test.describe("US GOF-c — Gestion des catégories", () => {
     expect(d2.categorie.libelle).toBe(nouveau);
   });
 
+  test("UI — Le formulaire de catégorie s'affiche seul pendant la modification", async ({ page }) => {
+    const ligne = page.locator("tbody tr").first();
+    await expect(ligne).toBeVisible();
+    await ligne.getByRole("button", { name: "Modifier" }).click();
+
+    await expect(page.getByRole("heading", { name: "Modifier la catégorie" })).toBeVisible();
+    await expect(page.locator("tbody")).toHaveCount(0);
+    await expect(page.locator('select[name="tri"]')).toHaveCount(0);
+    await expect(page.locator('select[name="parPage"]')).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Nouvelle catégorie" })).toBeHidden();
+
+    await page.getByRole("button", { name: "Annuler" }).click();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+    await expect(page.locator('select[name="tri"]')).toBeVisible();
+  });
+
   test("CA — Suppression avec réaffectation des produits", async ({ page }) => {
     const libelle = "Catégorie à supprimer " + Date.now();
     const { donnees } = await api(page, "admin/categories", {
@@ -110,6 +126,22 @@ test.describe("US GOF-c — Gestion des catégories", () => {
       body: { cible_id: cible.id },
     });
     expect(statut).toBe(200);
+  });
+
+  test("UI — La confirmation de suppression apparaît en fenêtre superposée", async ({ page }) => {
+    const ligne = page.locator("tbody tr").first();
+    await expect(ligne).toBeVisible();
+    await ligne.getByRole("button", { name: "Supprimer" }).click();
+
+    const overlay = page.locator('[data-zone="overlay"]');
+    const dialogue = page.getByRole("dialog");
+    await expect(dialogue).toBeVisible();
+    await expect(overlay).toHaveCSS("position", "fixed");
+    await expect(overlay).toHaveCSS("z-index", "50");
+    await expect(overlay).toHaveCSS("background-color", "oklab(0 0 0 / 0.4)");
+
+    await dialogue.getByRole("button", { name: "Annuler" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("CA — La validation empêche les données incohérentes", async ({ page }) => {

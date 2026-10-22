@@ -97,6 +97,38 @@ test.describe("US GOF-a — Gestion des produits", () => {
     crees.push(cree.id);
   });
 
+  test("UI — Le formulaire de produit s'affiche seul pendant la modification", async ({ page }) => {
+    const ligne = page.locator("tbody tr").first();
+    await expect(ligne).toBeVisible();
+    await ligne.getByRole("button", { name: "Modifier" }).click();
+
+    await expect(page.getByRole("heading", { name: "Modifier le produit" })).toBeVisible();
+    await expect(page.locator("tbody")).toHaveCount(0);
+    await expect(page.locator('select[name="tri"]')).toHaveCount(0);
+    await expect(page.locator('select[name="parPage"]')).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Nouveau produit" })).toBeHidden();
+
+    await page.getByRole("button", { name: "Annuler" }).click();
+    await expect(page.locator("tbody tr").first()).toBeVisible();
+    await expect(page.locator('select[name="tri"]')).toBeVisible();
+  });
+
+  test("UI — La confirmation de suppression produit apparaît en fenêtre superposée", async ({ page }) => {
+    const ligne = page.locator("tbody tr").first();
+    await expect(ligne).toBeVisible();
+    await ligne.getByRole("button", { name: "Supprimer" }).click();
+
+    const overlay = page.locator('[data-zone="overlay"]');
+    const dialogue = page.getByRole("dialog");
+    await expect(dialogue).toBeVisible();
+    await expect(overlay).toHaveCSS("position", "fixed");
+    await expect(overlay).toHaveCSS("z-index", "50");
+    await expect(overlay).toHaveCSS("background-color", "oklab(0 0 0 / 0.4)");
+
+    await dialogue.getByRole("button", { name: "Annuler" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
   test("CA — Je peux modifier un produit existant", async ({ page }) => {
     const nom = nomUnique("Produit modif");
     const { donnees } = await api(page, "admin/produits", {
@@ -107,6 +139,10 @@ test.describe("US GOF-a — Gestion des produits", () => {
     await aller(page, "admin/produits");
 
     await ligneProduit(page, nom).getByRole("button", { name: "Modifier" }).click();
+    await expect(page.locator("tbody")).toHaveCount(0);
+    await expect(page.locator('select[name="tri"]')).toHaveCount(0);
+    await expect(page.locator('select[name="parPage"]')).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Nouveau produit" })).toBeHidden();
     const nouveauNom = `${nom} modifié`;
     await remplirFormulaire(page, { nom: nouveauNom, prix: 9.9, stock: 0, seuil: 2 });
     await expect(page.getByRole("heading", { name: "Modifier le produit" })).toBeVisible();
@@ -114,6 +150,7 @@ test.describe("US GOF-a — Gestion des produits", () => {
 
     await expect(page.getByText(`Produit « ${nouveauNom} » enregistré.`)).toBeVisible();
     await expect(ligneProduit(page, nouveauNom)).toBeVisible();
+    await expect(page.locator('select[name="tri"]')).toBeVisible();
     await expect(ligneProduit(page, nouveauNom)).toContainText("9.9");
   });
 
@@ -129,6 +166,10 @@ test.describe("US GOF-a — Gestion des produits", () => {
     await ligneProduit(page, nom).getByRole("button", { name: "Supprimer" }).click();
     const dialogue = page.getByRole("dialog");
     await expect(dialogue).toContainText(nom);
+    const overlay = page.locator('[data-zone="overlay"]');
+    await expect(overlay).toHaveCSS("position", "fixed");
+    await expect(overlay).toHaveCSS("z-index", "50");
+    await expect(overlay).toHaveCSS("background-color", "oklab(0 0 0 / 0.4)");
     await dialogue.getByRole("button", { name: "Annuler" }).click();
     await expect(ligneProduit(page, nom)).toBeVisible();
 

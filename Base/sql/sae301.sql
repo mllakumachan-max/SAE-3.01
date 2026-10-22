@@ -171,12 +171,11 @@ VALUES
     ('3226359', 'repeteur-wifi-750', 'Amplificateur Wi-Fi', 'TP-link', '750 Mbit/s', 'Étend la couverture réseau pour éliminer les zones mortes dans la maison.', 19.95, 19.95, '€/pce', NULL, 1, 18),
     ('3226361', 'tracker-bluetooth-cles', 'Balise Smartfinder', 'Fresh ''n Rebel', 'Bluetooth', 'Localisez facilement vos objets perdus via l''application dédiée Apple ou Android.', 6.95, 6.95, '€/pce', NULL, 1, 18),
 
-    ----------------------------------------------------------------------
+    -- ----------------------------------------------------------------------
     -- HABITAT - categorie_id : 2
     -- -----------------------------------------------------------------------
     ('3225113', 'rideau-alexia-velours', 'Rideau Alexia', 'Studio Home', '140 x 260 cm', 'Rideau en velours épais avec 8 œillets métalliques. Tombé élégant.', 9.95, 2.73, '€/m²', NULL, 2, 6),
     ('3217153', 'rideau-occultant-romee-noir', 'Rideau occultant Romee', 'Studio Home', '140 x 260 cm', 'Blocage total de la lumière. Idéal pour les chambres à coucher.', 13.95, 13.95, '€/pce', NULL, 2, 6),
-    ('3225086', 'rideau-thermique-julles', 'Rideau occultant Julles', 'Julles', '140 x 260 cm', 'Isolation thermique et phonique. Préserve la chaleur de la pièce en hiver.', 12.95, 12.95, '€/pce', NULL, 2, 6),
     ('3016600', 'plaid-xxl-polaire', 'Plaid XXL', 'Studio Home', '300 x 280 cm', 'Format géant pour canapé d''angle. Matière polaire très douce.', 17.95, 2.14, '€/m²', 'Action', 2, 5),
     ('3223961', 'plaid-voyage-sac', 'Plaid avec sac', 'Studio Home', '150 x 200 cm', 'Livré avec son sac de transport. Parfait pour les pique-niques ou le camping.', 19.95, 6.65, '€/m²', NULL, 2, 5),
     ('3222146', 'parure-lit-satin-coton', 'Parure de lit en satin', 'Hotel Royal', '140 x 220 cm', 'Tissage serré offrant un aspect soyeux. Housse de couette et taie d''oreiller.', 17.95, 5.83, '€/m²', NULL, 2, 9),

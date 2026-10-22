@@ -27,11 +27,16 @@ let HeaderAdminView = {
   },
 
   /**
-   * @param {{surDeconnexion?: () => void}} actions
+  * @param {{adminConnecte?: boolean, surDeconnexion?: () => void}} actions
    * @returns {DocumentFragment}
    */
   dom: function (actions = {}) {
     let fragment = htmlToFragment(HeaderAdminView.html());
+    let zoneNavigation = fragment.querySelector('[data-zone="navigation-authentifie"]');
+    if (zoneNavigation) zoneNavigation.hidden = !actions.adminConnecte;
+
+    let btnDeconnexion = fragment.querySelector('[data-action="deconnexion"]');
+    if (btnDeconnexion) btnDeconnexion.hidden = !actions.adminConnecte;
 
     let slotNavigation = fragment.querySelector('slot[name="navigation"]');
     if (slotNavigation) {
@@ -53,7 +58,6 @@ let HeaderAdminView = {
       });
     }
 
-    let btnDeconnexion = fragment.querySelector('[data-action="deconnexion"]');
     if (btnDeconnexion && actions.surDeconnexion) {
       btnDeconnexion.addEventListener("click", () => actions.surDeconnexion());
     }

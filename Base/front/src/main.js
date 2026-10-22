@@ -30,5 +30,16 @@ router.addRoute("/admin/produits", AdminProduitsPage);
 // En dernier : toute adresse qui ne correspond à aucune route.
 router.addRoute("*", The404Page);
 
+document.addEventListener("admin:deconnexion-terminee", () => router.navigate("/admin"));
+document.addEventListener("admin:session-change", (event) => {
+	const connecte = event.detail === true;
+	document.querySelectorAll('[data-zone="navigation-authentifie"]').forEach((zone) => {
+		zone.hidden = !connecte;
+	});
+	document.querySelectorAll('[data-action="deconnexion"]').forEach((bouton) => {
+		bouton.hidden = !connecte;
+	});
+});
+
 // Démarrer le routeur
 router.start();

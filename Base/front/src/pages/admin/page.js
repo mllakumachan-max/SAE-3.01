@@ -1,6 +1,7 @@
 import { AuthData } from "../../data/auth.js";
 import { StatsData } from "../../data/stats.js";
 import { htmlToFragment } from "../../lib/utils.js";
+import { definirAdminConnecte } from "../../lib/admin-session.js";
 import { FormulaireConnexionView } from "../../ui/modales/Admin/connexionAdmin/index.js";
 import { MessageView } from "../../ui/message/index.js";
 import { StatistiquesView } from "../../ui/statistiques/index.js";
@@ -9,9 +10,8 @@ import template from "./template.html?raw";
 /**
  * Page « Administration ».
  *
- * La page ne protège rien : le formulaire et la zone de statistiques sont
- * toujours là. C'est le serveur qui décide de l'accès, et la page affiche sa
- * réponse : 200 avec les statistiques, 401 ou 403 sinon.
+ * Le serveur décide de l'accès : la page affiche le formulaire sans statistiques
+ * et le tableau de bord lorsque la session administrateur est valide.
  */
 
 let M = {
@@ -28,8 +28,10 @@ let C = {};
 C.chargerStats = async function () {
   try {
     M.stats = await StatsData.fetch();
+    definirAdminConnecte(true);
   } catch (erreur) {
     M.stats = null;
+    definirAdminConnecte(false);
 
     let texte = erreur.message;
     if (erreur.statut === 401) texte = "Vous n'êtes pas connecté.";
@@ -66,6 +68,7 @@ C.handler_deconnexion = async function () {
   }
 
   V.rafraichir();
+  document.dispatchEvent(new Event("admin:deconnexion-terminee"));
 };
 
 document.addEventListener("admin:deconnexion", C.handler_deconnexion);
@@ -98,12 +101,17 @@ V.rafraichir = function () {
 V.createPageFragment = function () {
   let pageFragment = htmlToFragment(template);
 
-  pageFragment.querySelector('slot[name="connexion"]').replaceWith(
-    FormulaireConnexionView.dom(
-      { login: M.login },
-      { surConnexion: C.handler_connexion, surDeconnexion: C.handler_deconnexion }
-    )
-  );
+  let slotConnexion = pageFragment.querySelector('slot[name="connexion"]');
+  if (M.stats === null) {
+    slotConnexion.replaceWith(
+      FormulaireConnexionView.dom(
+        { login: M.login },
+        { surConnexion: C.handler_connexion, surDeconnexion: C.handler_deconnexion }
+      )
+    );
+  } else {
+    slotConnexion.remove();
+  }
 
   pageFragment.querySelector('slot[name="message"]').replaceWith(MessageView.dom(M.message));
 

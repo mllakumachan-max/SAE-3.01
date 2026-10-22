@@ -2,6 +2,7 @@ import { AuthData } from "../../data/auth.js";
 import { CategorieData } from "../../data/categorie.js";
 import { ErreurApi } from "../../lib/api-request.js";
 import { htmlToFragment } from "../../lib/utils.js";
+import { definirAdminConnecte } from "../../lib/admin-session.js";
 import { BarreOutilsView } from "../../ui/barre-outils/index.js";
 import { FormulaireCategorieView } from "../../ui/forms-creer/Categorie/index.js";
 import { ConfirmationSuppressionCategorieView } from "../../ui/modales/Admin/suppressionCategorie/index.js";
@@ -51,12 +52,15 @@ C.chargerCategories = async function (page = M.page, tri = M.tri, parPage = M.pa
     M.pagesTotal = liste.pagesTotal;
     M.total = liste.total;
     M.acces = "ok";
+    definirAdminConnecte(true);
   } catch (erreur) {
     M.categories = [];
     if (erreur instanceof ErreurApi && erreur.statut === 401) {
       M.acces = "non-connecte";
+      definirAdminConnecte(false);
     } else if (erreur instanceof ErreurApi && erreur.statut === 403) {
       M.acces = "refuse";
+      definirAdminConnecte(false);
     } else {
       M.message = { type: "erreur", texte: erreur.message };
     }
@@ -197,9 +201,11 @@ C.handler_deconnexion = async function () {
 
   M.acces = "non-connecte";
   M.categories = [];
+  definirAdminConnecte(false);
   M.edition = null;
   M.suppression = null;
   V.rafraichir();
+  document.dispatchEvent(new Event("admin:deconnexion-terminee"));
 };
 
 document.addEventListener("admin:deconnexion", C.handler_deconnexion);
@@ -233,9 +239,12 @@ V.rafraichir = function () {
 V.createPageFragment = function () {
   let pageFragment = htmlToFragment(template);
   let accesOk = M.acces === "ok";
+  let editionEnCours = M.edition !== null;
 
-  pageFragment.querySelector('[data-action="creer"]').hidden = !accesOk;
-  pageFragment.querySelector('[data-action="creer"]').addEventListener("click", C.handler_ouvrirCreation);
+  let boutonCreer = pageFragment.querySelector('[data-action="creer"]');
+  boutonCreer.hidden = !accesOk || editionEnCours;
+  boutonCreer.addEventListener("click", C.handler_ouvrirCreation);
+  pageFragment.querySelector('[data-zone="entete"]').hidden = editionEnCours;
   pageFragment.querySelector('[data-zone="acces"]').hidden = accesOk;
 
   pageFragment.querySelector('slot[name="message"]').replaceWith(MessageView.dom(M.message));
@@ -269,7 +278,7 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="barre-outils"]').replaceWith(
-    accesOk
+    accesOk && !editionEnCours
       ? BarreOutilsView.dom({
           tri: M.tri,
           parPage: M.parPage,
@@ -290,7 +299,7 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="tableau"]').replaceWith(
-    accesOk
+    accesOk && !editionEnCours
       ? TableauCategoriesView.dom(M.categories, {
           surModifier: C.handler_ouvrirModification,
           surSupprimer: C.handler_demanderSuppression,
@@ -299,7 +308,7 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="pagination"]').replaceWith(
-    accesOk ? PaginationView.dom(M, { surPage: C.handler_changerPage }) : ""
+    accesOk && !editionEnCours ? PaginationView.dom(M, { surPage: C.handler_changerPage }) : ""
   );
 
   return pageFragment;

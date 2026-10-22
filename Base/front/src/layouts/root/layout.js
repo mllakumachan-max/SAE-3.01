@@ -1,4 +1,5 @@
 import { htmlToFragment } from "../../lib/utils.js";
+import { estAdminConnecte } from "../../lib/admin-session.js";
 import { HeaderClientView } from "../../ui/header/Client/index.js";
 import { HeaderAdminView } from "../../ui/header/Admin/index.js";
 import template from "./template.html?raw";
@@ -21,7 +22,10 @@ export function RootLayout(path = "/") {
   const estAdmin = path === "/admin" || path.startsWith("/admin/");
   const HeaderView = estAdmin ? HeaderAdminView : HeaderClientView;
   const actions = estAdmin
-    ? { surDeconnexion: () => document.dispatchEvent(new Event("admin:deconnexion")) }
+    ? {
+        adminConnecte: estAdminConnecte(),
+        surDeconnexion: () => document.dispatchEvent(new Event("admin:deconnexion")),
+      }
     : {};
 
   layout.querySelector('slot[name="header"]').replaceWith(HeaderView.dom(actions));
