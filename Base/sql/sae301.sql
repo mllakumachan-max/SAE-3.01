@@ -167,10 +167,8 @@ VALUES
     ('3226354', 'enceinte-boombox-xl', 'Enceinte Boombox XL', 'Fresh ''n Rebel', '24 watts', 'Basses profondes et clarté exceptionnelle. Résiste aux éclaboussures.', 19.95, 19.95, '€/pce', NULL, 1, 15),
     ('3226355', 'barre-son-tv-40w', 'Barre de son TV', 'Fresh ''n Rebel', '40 watts', 'Améliorez l''expérience audio de votre téléviseur avec ce système stéréo Bluetooth.', 24.95, 24.95, '€/pce', 'Action', 1, 15),
     ('3226356', 'ecouteurs-anc-tws', 'Écouteurs sans fil ANC', 'Philips', 'Intra-auriculaires', 'Réduction de bruit active. Boîtier compact offrant plusieurs cycles de recharge.', 19.95, 19.95, '€/pce', NULL, 1, 15),
-    ('3226357', 'casque-audio-solix', 'Casque audio sans fil', 'Solix', 'Fermé', 'Confort d''écoute prolongé grâce aux coussinets à mémoire de forme.', 9.99, 9.99, '€/pce', NULL, 1, 15),
     ('3226358', 'chargeur-allume-cigare-75w', 'Chargeur de voiture 5 ports', 'Re-load', '75 watts', 'Recharge simultanée de multiples appareils pendant les longs trajets en famille.', 9.95, 9.95, '€/pce', NULL, 1, 17),
     ('3226359', 'repeteur-wifi-750', 'Amplificateur Wi-Fi', 'TP-link', '750 Mbit/s', 'Étend la couverture réseau pour éliminer les zones mortes dans la maison.', 19.95, 19.95, '€/pce', NULL, 1, 18),
-    ('3226360', 'chargeur-secteur-compact', 'Chargeur mural USB-C', 'Sologic', '10,5 watts', 'Bloc d''alimentation miniaturisé avec protection contre les surtensions.', 2.49, 2.49, '€/pce', 'Nouveau', 1, 17),
     ('3226361', 'tracker-bluetooth-cles', 'Balise Smartfinder', 'Fresh ''n Rebel', 'Bluetooth', 'Localisez facilement vos objets perdus via l''application dédiée Apple ou Android.', 6.95, 6.95, '€/pce', NULL, 1, 18),
 
     ----------------------------------------------------------------------

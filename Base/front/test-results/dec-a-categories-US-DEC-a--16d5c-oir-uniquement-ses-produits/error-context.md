@@ -52,171 +52,199 @@ Received: 12
           - /url: /~ribatet1/SAE-3.01/Base/categorie/hobby
           - generic [ref=e33]: Hobby
           - generic [ref=e34]: "25"
-        - link "Bricolage 25" [ref=e35] [cursor=pointer]:
+        - link "Bricolage 33" [ref=e35] [cursor=pointer]:
           - /url: /~ribatet1/SAE-3.01/Base/categorie/bricolage
           - generic [ref=e36]: Bricolage
-          - generic [ref=e37]: "25"
-  - main [ref=e38]:
-    - generic [ref=e39]:
-      - navigation "Fil d'Ariane" [ref=e40]:
-        - list [ref=e41]:
-          - listitem [ref=e42]:
-            - link "Catalogue" [ref=e43] [cursor=pointer]:
+          - generic [ref=e37]: "33"
+        - link "Catégorie test 1792662988374 0" [ref=e38] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-test-1792662988374
+          - generic [ref=e39]: Catégorie test 1792662988374
+          - generic [ref=e40]: "0"
+        - link "Catégorie test 1792663178981 0" [ref=e41] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-test-1792663178981
+          - generic [ref=e42]: Catégorie test 1792663178981
+          - generic [ref=e43]: "0"
+        - link "Catégorie modif 1792663179493 mod 0" [ref=e44] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-modif-1792663179493
+          - generic [ref=e45]: Catégorie modif 1792663179493 mod
+          - generic [ref=e46]: "0"
+        - link "Catégorie test 1792663184935 0" [ref=e47] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-test-1792663184935
+          - generic [ref=e48]: Catégorie test 1792663184935
+          - generic [ref=e49]: "0"
+        - link "Catégorie modif 1792663185494 mod 0" [ref=e50] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-modif-1792663185494
+          - generic [ref=e51]: Catégorie modif 1792663185494 mod
+          - generic [ref=e52]: "0"
+        - link "Catégorie test 1792672739623 0" [ref=e53] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-test-1792672739623
+          - generic [ref=e54]: Catégorie test 1792672739623
+          - generic [ref=e55]: "0"
+        - link "Catégorie modif 1792672740525 mod 0" [ref=e56] [cursor=pointer]:
+          - /url: /~ribatet1/SAE-3.01/Base/categorie/categorie-modif-1792672740525
+          - generic [ref=e57]: Catégorie modif 1792672740525 mod
+          - generic [ref=e58]: "0"
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - navigation "Fil d'Ariane" [ref=e61]:
+        - list [ref=e62]:
+          - listitem [ref=e63]:
+            - link "Catalogue" [ref=e64] [cursor=pointer]:
               - /url: /~ribatet1/SAE-3.01/Base/
-            - generic [aria-hidden] [ref=e44]: /
-          - listitem [ref=e45]:
-            - generic [ref=e46]: Multimédia
-      - heading "Catalogue" [level=1] [ref=e47]
-      - generic [ref=e48]:
-        - generic [ref=e49]:
+            - generic [aria-hidden] [ref=e65]: /
+          - listitem [ref=e66]:
+            - generic [ref=e67]: Multimédia
+      - heading "Catalogue" [level=1] [ref=e68]
+      - generic [ref=e69]:
+        - generic [ref=e70]:
           - text: Trier par
-          - combobox "Trier par" [ref=e50]:
+          - combobox "Trier par" [ref=e71]:
             - option "Nom (A → Z)" [selected]
             - option "Prix (croissant)"
-        - generic [ref=e51]:
+        - generic [ref=e72]:
           - text: Produits par page
-          - combobox "Produits par page" [ref=e52]:
+          - combobox "Produits par page" [ref=e73]:
             - option "12 produits" [selected]
             - option "24 produits"
             - option "48 produits"
-        - generic [ref=e53]: 25 produits
-      - generic [ref=e54]:
-        - article [ref=e55]:
-          - link [ref=e56] [cursor=pointer]:
+        - generic [ref=e74]: 25 produits
+      - generic [ref=e75]:
+        - article [ref=e76]:
+          - link [ref=e77] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/repeteur-wifi-750
-            - figure "Amplificateur Wi-Fi 19,95 € En stock" [ref=e57]:
-              - img "Amplificateur Wi-Fi" [ref=e59]
-              - generic [ref=e60]:
-                - heading "Amplificateur Wi-Fi" [level=2] [ref=e61]
-                - generic [ref=e62]:
-                  - generic [ref=e63]: 19,95 €
-                  - generic [ref=e64]: En stock
-          - button "Ajouter au panier" [ref=e68] [cursor=pointer]
-        - article [ref=e69]:
-          - link [ref=e70] [cursor=pointer]:
+            - figure "Amplificateur Wi-Fi 19,95 € En stock" [ref=e78]:
+              - img "Amplificateur Wi-Fi" [ref=e80]
+              - generic [ref=e81]:
+                - heading "Amplificateur Wi-Fi" [level=2] [ref=e82]
+                - generic [ref=e83]:
+                  - generic [ref=e84]: 19,95 €
+                  - generic [ref=e85]: En stock
+          - button "Ajouter au panier" [ref=e89] [cursor=pointer]
+        - article [ref=e90]:
+          - link [ref=e91] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/tracker-bluetooth-cles
-            - figure "Balise Smartfinder 6,95 € En stock" [ref=e71]:
-              - img "Balise Smartfinder" [ref=e73]
-              - generic [ref=e74]:
-                - heading "Balise Smartfinder" [level=2] [ref=e75]
-                - generic [ref=e76]:
-                  - generic [ref=e77]: 6,95 €
-                  - generic [ref=e78]: En stock
-          - button "Ajouter au panier" [ref=e82] [cursor=pointer]
-        - article [ref=e83]:
-          - link [ref=e84] [cursor=pointer]:
+            - figure "Balise Smartfinder 6,95 € En stock" [ref=e92]:
+              - img "Balise Smartfinder" [ref=e94]
+              - generic [ref=e95]:
+                - heading "Balise Smartfinder" [level=2] [ref=e96]
+                - generic [ref=e97]:
+                  - generic [ref=e98]: 6,95 €
+                  - generic [ref=e99]: En stock
+          - button "Ajouter au panier" [ref=e103] [cursor=pointer]
+        - article [ref=e104]:
+          - link [ref=e105] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/barre-son-tv-40w
-            - figure "Barre de son TV 24,95 € En stock" [ref=e85]:
-              - img "Barre de son TV" [ref=e87]
-              - generic [ref=e88]:
-                - heading "Barre de son TV" [level=2] [ref=e89]
-                - generic [ref=e90]:
-                  - generic [ref=e91]: 24,95 €
-                  - generic [ref=e92]: En stock
-          - button "Ajouter au panier" [ref=e96] [cursor=pointer]
-        - article [ref=e97]:
-          - link [ref=e98] [cursor=pointer]:
+            - figure "Barre de son TV 24,95 € En stock" [ref=e106]:
+              - img "Barre de son TV" [ref=e108]
+              - generic [ref=e109]:
+                - heading "Barre de son TV" [level=2] [ref=e110]
+                - generic [ref=e111]:
+                  - generic [ref=e112]: 24,95 €
+                  - generic [ref=e113]: En stock
+          - button "Ajouter au panier" [ref=e117] [cursor=pointer]
+        - article [ref=e118]:
+          - link [ref=e119] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/batterie-haute-capacite-20000
-            - figure "Batterie externe 20000 mAh 18,95 € En stock" [ref=e99]:
-              - img "Batterie externe 20000 mAh" [ref=e101]
-              - generic [ref=e102]:
-                - heading "Batterie externe 20000 mAh" [level=2] [ref=e103]
-                - generic [ref=e104]:
-                  - generic [ref=e105]: 18,95 €
-                  - generic [ref=e106]: En stock
-          - button "Ajouter au panier" [ref=e110] [cursor=pointer]
-        - article [ref=e111]:
-          - link [ref=e112] [cursor=pointer]:
+            - figure "Batterie externe 20000 mAh 18,95 € En stock" [ref=e120]:
+              - img "Batterie externe 20000 mAh" [ref=e122]
+              - generic [ref=e123]:
+                - heading "Batterie externe 20000 mAh" [level=2] [ref=e124]
+                - generic [ref=e125]:
+                  - generic [ref=e126]: 18,95 €
+                  - generic [ref=e127]: En stock
+          - button "Ajouter au panier" [ref=e131] [cursor=pointer]
+        - article [ref=e132]:
+          - link [ref=e133] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/powerbank-5000mah
-            - figure "Batterie externe 5000 mAh 6,27 € En stock" [ref=e113]:
-              - img "Batterie externe 5000 mAh" [ref=e115]
-              - generic [ref=e116]:
-                - heading "Batterie externe 5000 mAh" [level=2] [ref=e117]
-                - generic [ref=e118]:
-                  - generic [ref=e119]: 6,27 €
-                  - generic [ref=e120]: En stock
-          - button "Ajouter au panier" [ref=e124] [cursor=pointer]
-        - article [ref=e125]:
-          - link [ref=e126] [cursor=pointer]:
+            - figure "Batterie externe 5000 mAh 6,27 € En stock" [ref=e134]:
+              - img "Batterie externe 5000 mAh" [ref=e136]
+              - generic [ref=e137]:
+                - heading "Batterie externe 5000 mAh" [level=2] [ref=e138]
+                - generic [ref=e139]:
+                  - generic [ref=e140]: 6,27 €
+                  - generic [ref=e141]: En stock
+          - button "Ajouter au panier" [ref=e145] [cursor=pointer]
+        - article [ref=e146]:
+          - link [ref=e147] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/boitier-synchro-led-tv
-            - figure "Boîtier de synchronisation HDMI 34,95 € En stock" [ref=e127]:
-              - img "Boîtier de synchronisation HDMI" [ref=e129]
-              - generic [ref=e130]:
-                - heading "Boîtier de synchronisation HDMI" [level=2] [ref=e131]
-                - generic [ref=e132]:
-                  - generic [ref=e133]: 34,95 €
-                  - generic [ref=e134]: En stock
-          - button "Ajouter au panier" [ref=e138] [cursor=pointer]
-        - article [ref=e139]:
-          - link [ref=e140] [cursor=pointer]:
+            - figure "Boîtier de synchronisation HDMI 34,95 € En stock" [ref=e148]:
+              - img "Boîtier de synchronisation HDMI" [ref=e150]
+              - generic [ref=e151]:
+                - heading "Boîtier de synchronisation HDMI" [level=2] [ref=e152]
+                - generic [ref=e153]:
+                  - generic [ref=e154]: 34,95 €
+                  - generic [ref=e155]: En stock
+          - button "Ajouter au panier" [ref=e159] [cursor=pointer]
+        - article [ref=e160]:
+          - link [ref=e161] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/cable-charge-multi-3en1
-            - figure "Câble de charge 3-en-1 6,97 € En stock" [ref=e141]:
-              - img "Câble de charge 3-en-1" [ref=e143]
-              - generic [ref=e144]:
-                - heading "Câble de charge 3-en-1" [level=2] [ref=e145]
-                - generic [ref=e146]:
-                  - generic [ref=e147]: 6,97 €
-                  - generic [ref=e148]: En stock
-          - button "Ajouter au panier" [ref=e152] [cursor=pointer]
-        - article [ref=e153]:
-          - link [ref=e154] [cursor=pointer]:
+            - figure "Câble de charge 3-en-1 6,97 € En stock" [ref=e162]:
+              - img "Câble de charge 3-en-1" [ref=e164]
+              - generic [ref=e165]:
+                - heading "Câble de charge 3-en-1" [level=2] [ref=e166]
+                - generic [ref=e167]:
+                  - generic [ref=e168]: 6,97 €
+                  - generic [ref=e169]: En stock
+          - button "Ajouter au panier" [ref=e173] [cursor=pointer]
+        - article [ref=e174]:
+          - link [ref=e175] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/cable-enrouleur-100w
-            - figure "Câble de charge rétractable 4,99 € En stock" [ref=e155]:
-              - img "Câble de charge rétractable" [ref=e157]
-              - generic [ref=e158]:
-                - heading "Câble de charge rétractable" [level=2] [ref=e159]
-                - generic [ref=e160]:
-                  - generic [ref=e161]: 4,99 €
-                  - generic [ref=e162]: En stock
-          - button "Ajouter au panier" [ref=e166] [cursor=pointer]
-        - article [ref=e167]:
-          - link [ref=e168] [cursor=pointer]:
+            - figure "Câble de charge rétractable 4,99 € En stock" [ref=e176]:
+              - img "Câble de charge rétractable" [ref=e178]
+              - generic [ref=e179]:
+                - heading "Câble de charge rétractable" [level=2] [ref=e180]
+                - generic [ref=e181]:
+                  - generic [ref=e182]: 4,99 €
+                  - generic [ref=e183]: En stock
+          - button "Ajouter au panier" [ref=e187] [cursor=pointer]
+        - article [ref=e188]:
+          - link [ref=e189] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/cable-donnees-silicone-2m
-            - figure "Câble de données en silicone 4,95 € En stock" [ref=e169]:
-              - img "Câble de données en silicone" [ref=e171]
-              - generic [ref=e172]:
-                - heading "Câble de données en silicone" [level=2] [ref=e173]
-                - generic [ref=e174]:
-                  - generic [ref=e175]: 4,95 €
-                  - generic [ref=e176]: En stock
-          - button "Ajouter au panier" [ref=e180] [cursor=pointer]
-        - article [ref=e181]:
-          - link [ref=e182] [cursor=pointer]:
+            - figure "Câble de données en silicone 4,95 € En stock" [ref=e190]:
+              - img "Câble de données en silicone" [ref=e192]
+              - generic [ref=e193]:
+                - heading "Câble de données en silicone" [level=2] [ref=e194]
+                - generic [ref=e195]:
+                  - generic [ref=e196]: 4,95 €
+                  - generic [ref=e197]: En stock
+          - button "Ajouter au panier" [ref=e201] [cursor=pointer]
+        - article [ref=e202]:
+          - link [ref=e203] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/cable-hdmi-4k-sitecom
-            - figure "Câble HDMI 4K 2,99 € En stock" [ref=e183]:
-              - img "Câble HDMI 4K" [ref=e185]
-              - generic [ref=e186]:
-                - heading "Câble HDMI 4K" [level=2] [ref=e187]
-                - generic [ref=e188]:
-                  - generic [ref=e189]: 2,99 €
-                  - generic [ref=e190]: En stock
-          - button "Ajouter au panier" [ref=e194] [cursor=pointer]
-        - article [ref=e195]:
-          - link [ref=e196] [cursor=pointer]:
+            - figure "Câble HDMI 4K 2,99 € En stock" [ref=e204]:
+              - img "Câble HDMI 4K" [ref=e206]
+              - generic [ref=e207]:
+                - heading "Câble HDMI 4K" [level=2] [ref=e208]
+                - generic [ref=e209]:
+                  - generic [ref=e210]: 2,99 €
+                  - generic [ref=e211]: En stock
+          - button "Ajouter au panier" [ref=e215] [cursor=pointer]
+        - article [ref=e216]:
+          - link [ref=e217] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/casque-audio-solix
-            - figure "Casque audio sans fil 9,99 € En stock" [ref=e197]:
-              - img "Casque audio sans fil" [ref=e199]
-              - generic [ref=e200]:
-                - heading "Casque audio sans fil" [level=2] [ref=e201]
-                - generic [ref=e202]:
-                  - generic [ref=e203]: 9,99 €
-                  - generic [ref=e204]: En stock
-          - button "Ajouter au panier" [ref=e208] [cursor=pointer]
-        - article [ref=e209]:
-          - link [ref=e210] [cursor=pointer]:
+            - figure "Casque audio sans fil 9,99 € En stock" [ref=e218]:
+              - img "Casque audio sans fil" [ref=e220]
+              - generic [ref=e221]:
+                - heading "Casque audio sans fil" [level=2] [ref=e222]
+                - generic [ref=e223]:
+                  - generic [ref=e224]: 9,99 €
+                  - generic [ref=e225]: En stock
+          - button "Ajouter au panier" [ref=e229] [cursor=pointer]
+        - article [ref=e230]:
+          - link [ref=e231] [cursor=pointer]:
             - /url: /~ribatet1/SAE-3.01/Base/produit/chargeur-allume-cigare-75w
-            - figure "Chargeur de voiture 5 ports 9,95 € En stock" [ref=e211]:
-              - img "Chargeur de voiture 5 ports" [ref=e213]
-              - generic [ref=e214]:
-                - heading "Chargeur de voiture 5 ports" [level=2] [ref=e215]
-                - generic [ref=e216]:
-                  - generic [ref=e217]: 9,95 €
-                  - generic [ref=e218]: En stock
-          - button "Ajouter au panier" [ref=e222] [cursor=pointer]
-      - navigation [ref=e223]:
-        - button "Précédent" [disabled] [ref=e224]
-        - generic [ref=e225]: Page 1 sur 3
-        - button "Suivant" [ref=e226] [cursor=pointer]
+            - figure "Chargeur de voiture 5 ports 9,95 € En stock" [ref=e232]:
+              - img "Chargeur de voiture 5 ports" [ref=e234]
+              - generic [ref=e235]:
+                - heading "Chargeur de voiture 5 ports" [level=2] [ref=e236]
+                - generic [ref=e237]:
+                  - generic [ref=e238]: 9,95 €
+                  - generic [ref=e239]: En stock
+          - button "Ajouter au panier" [ref=e243] [cursor=pointer]
+      - navigation [ref=e244]:
+        - button "Précédent" [disabled] [ref=e245]
+        - generic [ref=e246]: Page 1 sur 3
+        - button "Suivant" [ref=e247] [cursor=pointer]
 ```
 
 # Test source
