@@ -1,4 +1,5 @@
 import { ProduitData } from "../../data/produit.js";
+import { ajouterAuPanier } from "../../lib/panier.js";
 import { htmlToFragment } from "../../lib/utils.js";
 import { BarreOutilsView } from "../../ui/barre-outils/index.js";
 import { FilArianeView } from "../../ui/fil-ariane/index.js";
@@ -55,6 +56,11 @@ C.handler_changerPage = async function (page) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
+C.handler_ajouterPanier = function (id) {
+  const produit = (M.catalogue?.produits ?? []).find((p) => String(p.id) === String(id));
+  if (produit) ajouterAuPanier(produit, 1);
+};
+
 C.init = async function (categorieSlug = null) {
   M.categorieSlug = categorieSlug !== null && categorieSlug !== undefined && categorieSlug !== "" ? categorieSlug : null;
 
@@ -109,7 +115,7 @@ V.createPageFragment = function () {
     })
   );
 
-  pageFragment.querySelector('slot[name="grille"]').replaceWith(GrilleProduitsView.dom(M.catalogue.produits));
+  pageFragment.querySelector('slot[name="grille"]').replaceWith(GrilleProduitsView.dom(M.catalogue.produits, { surAjouterPanier: C.handler_ajouterPanier }));
 
   pageFragment.querySelector('slot[name="pagination"]').replaceWith(
     PaginationView.dom(M.catalogue, { surPage: C.handler_changerPage })
