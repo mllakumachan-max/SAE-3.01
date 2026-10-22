@@ -310,6 +310,12 @@ UPDATE PRODUIT SET stock = 0,    seuil_alerte = 5 WHERE reference = '3226469'; -
 UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '2578240'; -- support ordinateur (en stock)
 UPDATE PRODUIT SET stock = 50,   seuil_alerte = 5 WHERE reference = '3225765'; -- boîtier LED (en stock)
 
+-- Produits avec options de personnalisation (OPT-c) : ils doivent être en stock
+-- pour que le bouton « Ajouter au panier » soit cliquable dans les tests.
+UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '3224852'; -- couette sans housse Easy
+UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '3216983'; -- serviette
+UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '3221823'; -- rideau velours
+
 -- ---------------------------------------------------------------------------
 -- Options de personnalisation (OPT-c)
 -- ---------------------------------------------------------------------------
