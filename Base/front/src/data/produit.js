@@ -17,6 +17,8 @@ let mettreEnForme = function (produit) {
     ...produit,
     prix: Number(produit.prix),
     prix_unitaire: produit.prix_unitaire === null ? null : Number(produit.prix_unitaire),
+    stock: produit.stock,
+    seuilAlerte: produit.seuil_alerte,
     src: urlImage(produit.src),
   };
 };
