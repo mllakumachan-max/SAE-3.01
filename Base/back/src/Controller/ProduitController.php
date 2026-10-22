@@ -54,8 +54,9 @@ final class ProduitController
         }
 
         Response::json([
-            'produit' => $produit,
-            'galerie' => $this->produits->galerie($produit['id']),
+            'produit'  => $produit,
+            'galerie'  => $this->produits->galerie($produit['id']),
+            'options'  => $this->produits->optionsDuProduit($produit['id']),
         ]);
     }
 }

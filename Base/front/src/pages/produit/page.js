@@ -19,6 +19,9 @@ let M = {
   slug: null, // le slug lu dans l'URL
   produit: null, // le produit reçu de l'API, ou null
   galerie: [], // les images du produit, dans l'ordre d'affichage
+  options: [], // les options de personnalisation du produit
+  selection: {}, // { nomOption: valeurChoisie }
+  quantite: 1, // quantité choisie, préservée entre deux reconstructions
   message: null, // { type, texte }, ou null
 };
 
@@ -33,6 +36,10 @@ C.charger = async function (slug) {
 
     M.produit = reponse.produit;
     M.galerie = reponse.galerie;
+    M.options = reponse.options ?? [];
+    // Aucun choix n'est préservé quand on change de produit.
+    M.selection = {};
+    M.quantite = 1;
     M.message = null;
   } catch (erreur) {
     M.produit = null;
@@ -59,6 +66,11 @@ C.produitAffichage = function () {
   return {
     ...M.produit,
     images: M.galerie,
+    options: M.options,
+    selection: M.selection,
+    quantite: M.quantite,
+    prixBase: Number(M.produit.prix || 0),
+    prixActuel: C.prixActuel(),
     lienCatalogue: "/",
     libelleCatalogue: "Tous les produits",
     lienCategorie: categorie?.slug ? `/categorie/${categorie.slug}` : "/",
@@ -85,6 +97,41 @@ C.filAriane = function () {
 };
 
 /**
+ * Prix unitaire actuellement affiché : prix de base + suppléments des
+ * options sélectionnées.
+ */
+C.prixActuel = function () {
+  if (M.produit === null) return 0;
+
+  let supplement = 0;
+  for (const option of M.options) {
+    const valeurChoisie = M.selection[option.nom];
+    const valeur = (option.valeurs || []).find((v) => v.valeur === valeurChoisie);
+    if (valeur) supplement += valeur.prixSupplement || 0;
+  }
+
+  return Number(M.produit.prix || 0) + supplement;
+};
+
+/**
+ * L'utilisateur choisit une valeur pour une option. Le prix se recompute et
+ * la page se rafraichit.
+ */
+C.selectionnerOption = function (nomOption, valeur) {
+  if (M.produit === null) return;
+
+  M.selection[nomOption] = valeur;
+  V.rafraichir();
+};
+
+/**
+ * L'utilisateur modifie la quantité.
+ */
+C.handler_quantite = function (quantite) {
+  M.quantite = Math.max(1, Math.floor(Number(quantite) || 1));
+};
+
+/**
  * Ajout au panier avec vérification du stock, côté client et côté serveur.
  *
  * - Côté client : on refuse d'ajouter un produit épuisé, et on borne la
@@ -97,12 +144,12 @@ C.filAriane = function () {
  * Seul le message est mis à jour : reconstruire toute la page ferait perdre
  * l'image affichée et la quantité choisie.
  */
-C.handler_ajouterPanier = async function (id, quantite) {
+C.handler_ajouterPanier = async function (id) {
   if (M.produit === null) return;
 
   const produitId = id ?? M.produit.id;
   const stock = Number(M.produit.stock) || 0;
-  let quantiteFinale = Math.max(1, Math.floor(Number(quantite) || 1));
+  let quantiteFinale = M.quantite;
 
   // --- Vérification côté client -------------------------------------------
   if (stock <= 0) {
@@ -164,9 +211,11 @@ C.handler_ajouterPanier = async function (id, quantite) {
       id: produitId,
       slug: M.produit.slug,
       nom: M.produit.nom,
-      prix: M.produit.prix,
+      // Le prix tient compte des suppléments des options choisies.
+      prix: C.prixActuel(),
       stock: M.produit.stock,
       src: M.galerie[0]?.src ?? "",
+      options: { ...M.selection },
     },
     quantiteFinale
   );
@@ -260,6 +309,8 @@ V.createPageFragment = function () {
   slotProduit.replaceWith(
     DetailProduitView.dom(C.produitAffichage(), {
       surAjouterPanier: C.handler_ajouterPanier,
+      surSelectionChange: C.selectionnerOption,
+      surQuantite: C.handler_quantite,
     })
   );
 

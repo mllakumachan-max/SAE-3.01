@@ -3,15 +3,17 @@ import { BadgeStockView } from "../badge-stock/index.js";
 import { QuantiteView } from "../boutons/Quantite/index.js";
 import { GalerieImagesView } from "../galerie-images/index.js";
 import { LienRetourView } from "../lien-retour/index.js";
+import { OptionsView } from "../boutons/Options/index.js";
 import template from "./template.html?raw";
 
 /**
  * Fiche détaillée d'un produit :
- * image, description, prix, stock, quantité et ajout au panier.
+ * image, description, prix, options, quantité et ajout au panier.
  * Ce n'est PAS la carte de la grille : voir carte-produit pour celle-ci.
  *
- * produit : { id, nom, prix, src, alt, description, etat, stock, seuilAlerte,
- *             images, lienCategorie, lienCatalogue }
+ * produit : { id, nom, prixBase, prixActuel, src, alt, description, etat, stock,
+ *             seuilAlerte, images, options, selection, quantite,
+ *             lienCategorie, lienCatalogue }
  */
 let DetailProduitView = {
   /**
@@ -20,9 +22,9 @@ let DetailProduitView = {
    */
   html: function (produit = {}) {
     const prixFormate =
-      typeof produit.prix === "number"
-        ? produit.prix.toFixed(2).replace(".", ",")
-        : String(produit.prix || "0,00");
+      typeof produit.prixActuel === "number"
+        ? produit.prixActuel.toFixed(2).replace(".", ",")
+        : String(produit.prixActuel || "0,00");
 
     return genericRenderer(template, {
       nom: produit.nom || "",
@@ -33,7 +35,9 @@ let DetailProduitView = {
 
   /**
    * @param {object} produit
-   * @param {{surAjouterPanier?: (id: number|string, quantite: number) => void}} actions
+   * @param {{surAjouterPanier?: (id: number|string) => void,
+   *          surSelectionChange?: (nom: string, valeur: string) => void,
+   *          surQuantite?: (quantite: number) => void}} actions
    * @returns {DocumentFragment}
    */
   dom: function (produit = {}, actions = {}) {
@@ -51,14 +55,42 @@ let DetailProduitView = {
       );
     }
 
+    // Choix des options inséré dans sa zone
+    let zoneOptions = fragment.querySelector('[data-zone="options"]');
+    if (zoneOptions) {
+      zoneOptions.replaceWith(
+        OptionsView.dom(
+          {
+            options: produit.options || [],
+            selection: produit.selection || {},
+          },
+          {
+            surChange: (selection) => {
+              // On ne sait pas quelle option a changé : on compare avec la
+              // sélection précédemment affichée pour n'appliquer que le choix
+              // de l'utilisateur, puis on rafraichit le prix.
+              const precedente = produit.selection || {};
+              for (const option of produit.options || []) {
+                const valeur = selection[option.nom];
+                if (valeur !== undefined && valeur !== precedente[option.nom]) {
+                  if (actions.surSelectionChange) {
+                    actions.surSelectionChange(option.nom, valeur);
+                  }
+                }
+              }
+            },
+          }
+        )
+      );
+    }
+
     // Contrôleur de quantité inséré dans son slot
-    let quantiteChoisie = 1;
     let slotQuantite = fragment.querySelector('slot[name="quantite"]');
     if (slotQuantite) {
       slotQuantite.replaceWith(
         QuantiteView.dom(
-          { valeur: 1, min: 1, max: produit.stock },
-          { surChange: (q) => { quantiteChoisie = q; } }
+          { valeur: produit.quantite ?? 1, min: 1, max: produit.stock },
+          { surChange: (q) => { if (actions.surQuantite) actions.surQuantite(q); } }
         )
       );
     }
@@ -99,7 +131,7 @@ let DetailProduitView = {
         btnAjout.textContent = "Épuisé";
       } else if (actions.surAjouterPanier) {
         btnAjout.addEventListener("click", () => {
-          actions.surAjouterPanier(produit.id, quantiteChoisie);
+          actions.surAjouterPanier(produit.id);
         });
       }
     }

@@ -8,6 +8,8 @@ SET NAMES utf8mb4;
 
 DROP TABLE IF EXISTS UTILISATEUR;
 DROP TABLE IF EXISTS GALERIE;
+DROP TABLE IF EXISTS OPTION_VALEUR;
+DROP TABLE IF EXISTS OPTION_PRODUIT;
 DROP TABLE IF EXISTS PRODUIT;
 DROP TABLE IF EXISTS CATEGORIE;
 
@@ -67,6 +69,46 @@ CREATE TABLE PRODUIT (
         ON UPDATE CASCADE,
     CONSTRAINT fk_produit_sous_categorie_id
         FOREIGN KEY (sous_categorie_id) REFERENCES CATEGORIE (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- Options de personnalisation d'un produit (Taille, Couleur…)
+-- Une option est définie pour un produit donné. Chaque valeur d'option peut
+-- proposer un supplément de prix.
+-- ---------------------------------------------------------------------------
+CREATE TABLE OPTION_PRODUIT (
+    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    produit_id  SMALLINT UNSIGNED NOT NULL,
+    nom         VARCHAR(80)       NOT NULL,
+    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 1,
+
+    PRIMARY KEY (id),
+    KEY idx_option_produit (produit_id),
+
+    CONSTRAINT fk_option_produit
+        FOREIGN KEY (produit_id) REFERENCES PRODUIT (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE OPTION_VALEUR (
+    id              SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    option_id       SMALLINT UNSIGNED NOT NULL,
+    valeur          VARCHAR(80)       NOT NULL,
+    prix_supplement DECIMAL(6,2)      NOT NULL DEFAULT 0.00,
+    ordre           TINYINT UNSIGNED  NOT NULL DEFAULT 1,
+
+    PRIMARY KEY (id),
+    KEY idx_option_valeur_option (option_id),
+
+    CONSTRAINT fk_option_valeur_option
+        FOREIGN KEY (option_id) REFERENCES OPTION_PRODUIT (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
@@ -267,6 +309,29 @@ UPDATE PRODUIT SET stock = 1,    seuil_alerte = 5 WHERE reference = '3224680'; -
 UPDATE PRODUIT SET stock = 0,    seuil_alerte = 5 WHERE reference = '3226469'; -- câble HDMI (épuisé)
 UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '2578240'; -- support ordinateur (en stock)
 UPDATE PRODUIT SET stock = 50,   seuil_alerte = 5 WHERE reference = '3225765'; -- boîtier LED (en stock)
+
+-- ---------------------------------------------------------------------------
+-- Options de personnalisation (OPT-c)
+-- ---------------------------------------------------------------------------
+INSERT INTO OPTION_PRODUIT (produit_id, nom, ordre) VALUES
+    ((SELECT id FROM PRODUIT WHERE reference = '3224852'), 'Couleur', 1),   -- couette sans housse Easy
+    ((SELECT id FROM PRODUIT WHERE reference = '3216983'),  'Couleur', 1),   -- serviette
+    ((SELECT id FROM PRODUIT WHERE reference = '3221823'),  'Couleur', 1);    -- rideau velours
+
+INSERT INTO OPTION_VALEUR (option_id, valeur, prix_supplement, ordre) VALUES
+    -- Couette sans housse Easy : le beige coûte 2,00 € de plus
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Blanc',    0.00, 1),
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Beige',    2.00, 2),
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Noire',    0.00, 3),
+
+    -- Serviette
+    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Noire',   0.00, 1),
+    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Verte',   0.00, 2),
+    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Cuivre',  0.00, 3),
+
+    -- Rideau velours
+    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Beige',  0.00, 1),
+    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Rose',  0.00, 2);
 
 -- Galeries
 -- ---------------------------------------------------------------------------

@@ -235,6 +235,57 @@ final class ProduitModel
     }
 
     /**
+     * Les options de personnalisation d'un produit, avec leurs valeurs et leur
+     * supplément de prix.
+     *
+     * @return list<array{id: int, nom: string, ordre: int, valeurs: list<array{id: int, valeur: string, prix_supplement: string, ordre: int}>}>
+     */
+    public function optionsDuProduit(int $produitId): array
+    {
+        $requetePreparee = $this->pdo->prepare(
+            'SELECT OPTION_PRODUIT.id, OPTION_PRODUIT.nom, OPTION_PRODUIT.ordre,
+                    OPTION_VALEUR.id         AS valeur_id,
+                    OPTION_VALEUR.valeur     AS valeur,
+                    OPTION_VALEUR.prix_supplement AS prix_supplement,
+                    OPTION_VALEUR.ordre      AS valeur_ordre
+               FROM OPTION_PRODUIT
+          LEFT JOIN OPTION_VALEUR ON OPTION_VALEUR.option_id = OPTION_PRODUIT.id
+              WHERE OPTION_PRODUIT.produit_id = :produit
+           ORDER BY OPTION_PRODUIT.ordre ASC, OPTION_PRODUIT.id ASC,
+                    OPTION_VALEUR.ordre ASC, OPTION_VALEUR.id ASC'
+        );
+        $requetePreparee->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        $requetePreparee->execute();
+
+        $options = [];
+
+        foreach ($requetePreparee->fetchAll() as $ligne) {
+            $optionId = (int) $ligne['id'];
+
+            if (!isset($options[$optionId])) {
+                $options[$optionId] = [
+                    'id'      => $optionId,
+                    'nom'     => $ligne['nom'],
+                    'ordre'   => (int) $ligne['ordre'],
+                    'valeurs' => [],
+                ];
+            }
+
+            if ($ligne['valeur_id'] !== null) {
+                // Les DECIMAL restent en texte : le front les convertit.
+                $options[$optionId]['valeurs'][] = [
+                    'id'               => (int) $ligne['valeur_id'],
+                    'valeur'           => $ligne['valeur'],
+                    'prix_supplement'  => $ligne['prix_supplement'],
+                    'ordre'            => (int) $ligne['valeur_ordre'],
+                ];
+            }
+        }
+
+        return array_values($options);
+    }
+
+    /**
      * Statistiques globales du catalogue, pour la zone d'administration.
      */
     public function statistiques(): array

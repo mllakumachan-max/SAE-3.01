@@ -20,6 +20,18 @@ let mettreEnForme = function (produit) {
     stock: produit.stock,
     seuilAlerte: produit.seuil_alerte,
     src: urlImage(produit.src),
+    options: (produit.options || []).map((option) => ({
+      id: option.id,
+      nom: option.nom,
+      ordre: option.ordre,
+      valeurs: (option.valeurs || []).map((valeur) => ({
+        id: valeur.id,
+        valeur: valeur.valeur,
+        // Les DECIMAL arrivent en texte : on les convertit en nombre.
+        prixSupplement: valeur.prix_supplement === null ? 0 : Number(valeur.prix_supplement),
+        ordre: valeur.ordre,
+      })),
+    })),
   };
 };
 
