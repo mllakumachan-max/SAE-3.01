@@ -78,22 +78,16 @@
         </div>
 
         <div class="flex flex-col gap-2">
-            <p class="text-14 font-medium text-text-primary">Ajouter une image</p>
+            <p class="text-14 font-medium text-text-primary">Ajouter une ou plusieurs images</p>
             <label data-zone="depot-image" class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border-default bg-surface-subtle p-5 text-center hover:border-border-strong focus-within:outline-2 focus-within:outline-border-focus">
-                <input name="image" type="file" accept="image/avif,image/jpeg,image/png,image/webp" data-zone="fichier-image" class="sr-only" />
+                <input name="image" type="file" accept="image/avif,image/jpeg,image/png,image/webp" multiple data-zone="fichier-image" class="sr-only" />
                 <svg aria-hidden="true" class="size-6 text-text-secondary" viewBox="0 0 24 24" fill="currentColor">
                     <use href="#icon-download"></use>
                 </svg>
-                <span class="text-14 text-text-primary">Glissez une image ici ou <span class="text-text-link underline">parcourir</span></span>
-                <span class="text-12 text-text-secondary">AVIF, JPG/JPEG, PNG ou WebP · 5 Mo maximum</span>
+                <span class="text-14 text-text-primary">Glissez une ou plusieurs images ici ou <span class="text-text-link underline">parcourir</span></span>
+                <span class="text-12 text-text-secondary">AVIF, JPG/JPEG, PNG ou WebP · 5 Mo chacune · plusieurs images possibles</span>
             </label>
-            <div data-zone="fichier-selectionne" class="hidden items-center justify-between gap-3 rounded-md border border-border-default bg-surface-default p-3">
-                <div class="flex min-w-0 flex-col">
-                    <span data-zone="nom-fichier" class="truncate text-14 font-medium text-text-primary"></span>
-                    <span data-zone="taille-fichier" class="text-12 text-text-secondary"></span>
-                </div>
-                <button type="button" data-action="retirer-image" aria-label="Retirer l'image sélectionnée" class="shrink-0 rounded-md px-3 py-2 text-14 text-text-secondary hover:bg-surface-subtle">Retirer</button>
-            </div>
+            <div data-zone="fichiers-selectionnes" class="hidden flex flex-col gap-2 rounded-md border border-border-default bg-surface-default p-3"></div>
         </div>
 
         <div class="mt-2 flex justify-end gap-3">

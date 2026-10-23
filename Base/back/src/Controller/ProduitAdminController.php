@@ -44,7 +44,6 @@ final class ProduitAdminController
     private const IMAGE_OCTETS_MAX   = 5242880; // 5 Mo
     private const IMAGE_COTE_MAX     = 1200;    // côté le plus long, en pixels
     private const DOSSIER_IMAGES     = 'uploads/produits'; // relatif à Base/
-
     /** Le modèle qui interroge la base, fourni à la construction. */
     private ProduitModel $produits;
 
@@ -137,7 +136,7 @@ final class ProduitAdminController
         Response::json(['supprimee' => true]);
     }
 
-    // POST /api/admin/produits/:id/images — corps : { image (data URL), texte_alternatif }
+    // POST /api/admin/produits/:id/images — corps : [{ image (data URL), texte_alternatif }, ...] ou { image, texte_alternatif }
     public function ajouterImage(Request $requete): void
     {
         $this->exigerAdmin();
@@ -145,25 +144,53 @@ final class ProduitAdminController
         $id = $this->identifiant($requete, 'id');
         $this->exigerExistant($id);
 
-        if ($this->produits->compterImages($id) >= self::IMAGES_PAR_PRODUIT) {
-            Response::erreur('Un produit ne peut pas avoir plus de ' . self::IMAGES_PAR_PRODUIT . ' images.', 409);
+        $corps = $requete->corps();
+
+        // Accepte un tableau d'images, ou un seul objet pour la compatibilité.
+        if (is_array($corps) && !isset($corps['image']) && !isset($corps['images'])) {
+            $images = $corps;
+        } elseif (isset($corps['images']) && is_array($corps['images'])) {
+            $images = $corps['images'];
+        } elseif (isset($corps['image'])) {
+            $images = [$corps];
+        } else {
+            Response::erreur('Aucune image fournie.', 400);
         }
 
-        $corps  = $requete->corps();
-        $source = $this->decoderImage($corps['image'] ?? null);
-        $texte  = $this->texte($corps, 'texte_alternatif', 160, 'Le texte alternatif');
-        $chemin = $this->enregistrerImage($source, $id);
+        if (empty($images)) {
+            Response::erreur('Aucune image fournie.', 400);
+        }
 
-        $imageId = $this->produits->ajouterImage(
-            $id,
-            $chemin,
-            $texte,
-            $this->produits->compterImages($id) + 1
-        );
+        $deja   = $this->produits->compterImages($id);
+        $places = self::IMAGES_PAR_PRODUIT - $deja;
 
-        Response::json([
-            'image' => ['id' => $imageId, 'chemin' => $chemin, 'texte_alternatif' => $texte],
-        ], 201);
+        if (count($images) > $places) {
+            Response::erreur(
+                'Ce produit peut encore recevoir ' . $places . ' image(s) maximum (limite : ' . self::IMAGES_PAR_PRODUIT . ').',
+                409
+            );
+        }
+
+        $creees = [];
+        $ordre  = $deja + 1;
+
+        foreach ($images as $donnees) {
+            $source = $this->decoderImage($donnees['image'] ?? null);
+            $texte  = $this->texte($donnees, 'texte_alternatif', 160, 'Le texte alternatif');
+            $nom    = $this->nomFichier($donnees['nomFichier'] ?? null);
+            $chemin = $this->enregistrerImage($source, $id, $nom);
+
+            $imageId = $this->produits->ajouterImage(
+                $id,
+                $chemin,
+                $texte,
+                $ordre++
+            );
+
+            $creees[] = ['id' => $imageId, 'chemin' => $chemin, 'texte_alternatif' => $texte];
+        }
+
+        Response::json(['images' => $creees], 201);
     }
 
     // DELETE /api/admin/produits/:id/images/:imageId
@@ -347,8 +374,12 @@ final class ProduitAdminController
      * Redimensionne l'image (côté le plus long : IMAGE_COTE_MAX), l'enregistre en
      * JPEG et renvoie son chemin relatif à Base/, tel qu'il est stocké en base.
      * Réencoder l'image la débarrasse de tout contenu indésirable.
+     *
+     * Si $nomFichier est fourni, il est utilisé (nettoyé) comme base du nom de
+     * fichier, suivi de « -{produitId}-{hex}.jpg ». Sinon, un nom aléatoire est
+     * généré.
      */
-    private function enregistrerImage(GdImage $source, int $produitId): string
+    private function enregistrerImage(GdImage $source, int $produitId, ?string $nomFichier = null): string
     {
         $largeur = imagesx($source);
         $hauteur = imagesy($source);
@@ -364,13 +395,38 @@ final class ProduitAdminController
         imagealphablending($cible, true);
         imagecopyresampled($cible, $source, 0, 0, 0, 0, $nouvelleLargeur, $nouvelleHauteur, $largeur, $hauteur);
 
-        $nomFichier = 'produit-' . $produitId . '-' . bin2hex(random_bytes(6)) . '.jpg';
+        $base = $nomFichier !== null ? $nomFichier : bin2hex(random_bytes(6));
+        $nomFichierFinal = 'produit-' . $produitId . '-' . $base . '.jpg';
 
-        if (!imagejpeg($cible, $this->dossierImages() . '/' . $nomFichier, 85)) {
+        if (!imagejpeg($cible, $this->dossierImages() . '/' . $nomFichierFinal, 85)) {
             Response::erreur("Enregistrement de l'image impossible.", 500);
         }
 
-        return self::DOSSIER_IMAGES . '/' . $nomFichier;
+        return self::DOSSIER_IMAGES . '/' . $nomFichierFinal;
+    }
+
+    /** Nettoie le nom de fichier d'origine pour l'utiliser dans un nom sur disque. */
+    private function nomFichier(?string $brut): string
+    {
+        if ($brut === null || $brut === '') {
+            return bin2hex(random_bytes(6));
+        }
+
+        // Ne garder que le nom de base (éviter les traversées de chemin).
+        $nom = basename($brut);
+
+        // Retirer l'extension : l'image est toujours réencodée en .jpg.
+        $nom = preg_replace('/\.[^.\/]+$/', '', $nom);
+
+        // Remplacer tout ce qui n'est pas alphanumérique par un tiret.
+        $nom = preg_replace('/[^A-Za-z0-9]+/', '-', $nom);
+        $nom = trim($nom, '-');
+
+        if ($nom === '') {
+            return bin2hex(random_bytes(6));
+        }
+
+        return substr($nom, 0, 60);
     }
 
     /** Dossier des images téléversées, créé au besoin. */

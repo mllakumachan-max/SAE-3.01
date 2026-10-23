@@ -110,6 +110,7 @@ C.valeursVides = function () {
   return {
     nom: "", reference: "", categorieId: "", marque: "", format: "", badge: "",
     description: "", prix: "", prixUnitaire: "", unitePrix: "", stock: 0, seuilAlerte: 5,
+    images: [],
   };
 };
 
@@ -204,9 +205,16 @@ C.handler_enregistrer = async function (valeurs) {
     // Le produit existe désormais : une nouvelle soumission le modifiera.
     M.edition = { ...M.edition, id: produit.id };
 
-    if (valeurs.image instanceof File && valeurs.image.size > 0) {
-      const image = await C.lireDataUrl(valeurs.image);
-      await ProduitData.ajouterImage(produit.id, { image, texte_alternatif: produit.nom });
+    if (Array.isArray(valeurs.images)) {
+      for (const fichier of valeurs.images) {
+        if (!(fichier instanceof File) || fichier.size === 0) continue;
+        const image = await C.lireDataUrl(fichier);
+        await ProduitData.ajouterImage(produit.id, [{
+          image,
+          texte_alternatif: produit.nom,
+          nomFichier: fichier.name,
+        }]);
+      }
     }
 
     M.message = { type: "succes", texte: `Produit « ${produit.nom} » enregistré.` };

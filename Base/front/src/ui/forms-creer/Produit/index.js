@@ -38,12 +38,15 @@ let ProduitFormView = {
     if (!Number.isInteger(Number(v.seuilAlerte)) || Number(v.seuilAlerte) < 0) {
       return "Le seuil d'alerte doit être un nombre entier positif ou nul.";
     }
-    if (v.image instanceof File && v.image.size > 0) {
-      if (!TYPES_IMAGE_AUTORISES.includes(v.image.type)) {
-        return "Le format de l'image doit être AVIF, JPG/JPEG, PNG ou WebP.";
-      }
-      if (v.image.size > IMAGE_OCTETS_MAX) {
-        return "L'image est trop lourde : 5 Mo maximum.";
+    if (Array.isArray(v.images)) {
+      for (const fichier of v.images) {
+        if (!(fichier instanceof File) || fichier.size === 0) continue;
+        if (!TYPES_IMAGE_AUTORISES.includes(fichier.type)) {
+          return "Le format de l'image doit être AVIF, JPG/JPEG, PNG ou WebP.";
+        }
+        if (fichier.size > IMAGE_OCTETS_MAX) {
+          return "L'image « " + fichier.name + " » est trop lourde : 5 Mo maximum.";
+        }
       }
     }
     return null;
@@ -62,41 +65,79 @@ let ProduitFormView = {
     let select = fragment.querySelector('[data-zone="categories"]');
     let inputImage = fragment.querySelector('[data-zone="fichier-image"]');
     let zoneDepot = fragment.querySelector('[data-zone="depot-image"]');
-    let fichierSelectionne = fragment.querySelector('[data-zone="fichier-selectionne"]');
-    let nomFichier = fragment.querySelector('[data-zone="nom-fichier"]');
-    let tailleFichier = fragment.querySelector('[data-zone="taille-fichier"]');
+    let fichiersSelectionnesZone = fragment.querySelector('[data-zone="fichiers-selectionnes"]');
     let valeurs = edition.valeurs ?? {};
+    let fichiersSelectionnes = Array.isArray(valeurs.images) ? [...valeurs.images] : [];
 
-    let afficherFichier = function (fichier) {
-      let erreur = ProduitFormView.valider({
-        nom: "ok",
-        categorieId: "ok",
-        prix: "0",
-        prixUnitaire: "",
-        stock: "0",
-        seuilAlerte: "0",
-        image: fichier,
-      });
+    let tailleKo = function (fichier) {
+      return Math.max(1, Math.ceil(fichier.size / 1024)) + " Ko";
+    };
 
-      if (erreur) {
-        inputImage.value = "";
-        fichierSelectionne.classList.add("hidden");
-        fichierSelectionne.classList.remove("flex");
-        message.textContent = erreur;
-        message.classList.remove("hidden");
+    let retirerFichier = function (index) {
+      fichiersSelectionnes.splice(index, 1);
+      afficherFichiers();
+    };
+
+    let afficherFichiers = function () {
+      fichiersSelectionnesZone.innerHTML = "";
+
+      if (fichiersSelectionnes.length === 0) {
+        fichiersSelectionnesZone.classList.add("hidden");
+        fichiersSelectionnesZone.classList.remove("flex");
         return;
       }
 
-      message.textContent = "";
-      message.classList.add("hidden");
-      nomFichier.textContent = fichier.name;
-      tailleFichier.textContent = `${Math.max(1, Math.ceil(fichier.size / 1024))} Ko`;
-      fichierSelectionne.classList.remove("hidden");
-      fichierSelectionne.classList.add("flex");
+      fichiersSelectionnes.forEach((fichier, index) => {
+        let erreur = ProduitFormView.valider({
+          nom: "ok",
+          categorieId: "ok",
+          prix: "0",
+          prixUnitaire: "",
+          stock: "0",
+          seuilAlerte: "0",
+          images: [fichier],
+        });
+
+        let item = document.createElement("div");
+        item.className = "flex items-center justify-between gap-3 rounded-md border p-2 " + (erreur ? "border-status-danger-indicator bg-status-danger-subtle" : "border-border-default bg-surface-default");
+
+        let infos = document.createElement("div");
+        infos.className = "flex min-w-0 flex-col";
+        let nom = document.createElement("span");
+        nom.className = "truncate text-14 font-medium text-text-primary";
+        nom.textContent = fichier.name;
+        let taille = document.createElement("span");
+        taille.className = "text-12 text-text-secondary";
+        taille.textContent = tailleKo(fichier);
+        infos.append(nom, taille);
+
+        if (erreur) {
+          let messageErreur = document.createElement("span");
+          messageErreur.className = "text-12 text-status-danger-text";
+          messageErreur.textContent = erreur;
+          item.append(infos, messageErreur);
+        } else {
+          let bouton = document.createElement("button");
+          bouton.type = "button";
+          bouton.textContent = "Retirer";
+          bouton.className = "shrink-0 rounded-md px-3 py-2 text-14 text-text-secondary hover:bg-surface-subtle";
+          bouton.addEventListener("click", () => retirerFichier(index));
+          item.append(infos, bouton);
+        }
+
+        fichiersSelectionnesZone.appendChild(item);
+      });
+
+      fichiersSelectionnesZone.classList.remove("hidden");
+      fichiersSelectionnesZone.classList.add("flex");
     };
 
     inputImage.addEventListener("change", () => {
-      if (inputImage.files[0]) afficherFichier(inputImage.files[0]);
+      for (const fichier of inputImage.files) {
+        fichiersSelectionnes.push(fichier);
+      }
+      inputImage.value = "";
+      afficherFichiers();
     });
 
     ["dragenter", "dragover"].forEach((type) => {
@@ -114,19 +155,10 @@ let ProduitFormView = {
     });
 
     zoneDepot.addEventListener("drop", (ev) => {
-      let fichier = ev.dataTransfer.files[0];
-      if (!fichier) return;
-
-      let transfert = new DataTransfer();
-      transfert.items.add(fichier);
-      inputImage.files = transfert.files;
-      afficherFichier(fichier);
-    });
-
-    fragment.querySelector('[data-action="retirer-image"]').addEventListener("click", () => {
-      inputImage.value = "";
-      fichierSelectionne.classList.add("hidden");
-      fichierSelectionne.classList.remove("flex");
+      for (const fichier of ev.dataTransfer.files) {
+        fichiersSelectionnes.push(fichier);
+      }
+      afficherFichiers();
     });
 
     // Valeurs posées par propriété, jamais par HTML : aucune saisie n'est interprétée.
@@ -174,7 +206,7 @@ let ProduitFormView = {
       bouton.textContent = "Supprimer l'image";
       bouton.className = "text-12 text-red-700 underline hover:text-red-900 dark:text-red-400";
       bouton.addEventListener("click", () => {
-        options.surSupprimerImage?.(image.id, ProduitFormView.lireSaisie(formulaire));
+        options.surSupprimerImage?.(image.id, ProduitFormView.lireSaisie(formulaire, fichiersSelectionnes));
       });
 
       item.append(img, bouton);
@@ -183,7 +215,7 @@ let ProduitFormView = {
 
     formulaire.addEventListener("submit", (ev) => {
       ev.preventDefault();
-      let v = ProduitFormView.lireSaisie(formulaire);
+      let v = ProduitFormView.lireSaisie(formulaire, fichiersSelectionnes);
       let erreur = ProduitFormView.valider(v);
       message.textContent = erreur || "";
       message.classList.toggle("hidden", !erreur);
@@ -194,8 +226,8 @@ let ProduitFormView = {
     return fragment;
   },
 
-  /** Lit la saisie sous forme d'objet. Le fichier image y figure s'il est choisi. */
-  lireSaisie: function (formulaire) {
+  /** Lit la saisie sous forme d'objet. Les fichiers image y figurent s'ils sont choisis. */
+  lireSaisie: function (formulaire, images = []) {
     let v = Object.fromEntries(new FormData(formulaire));
     return {
       nom: String(v.nom ?? ""),
@@ -210,7 +242,7 @@ let ProduitFormView = {
       unitePrix: String(v.unitePrix ?? ""),
       stock: String(v.stock ?? ""),
       seuilAlerte: String(v.seuilAlerte ?? ""),
-      image: v.image,
+      images: images,
     };
   },
 };

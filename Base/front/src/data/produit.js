@@ -155,8 +155,8 @@ ProduitData.supprimer = function (id) {
 };
 
 /**
- * Ajoute une image : POST /api/admin/produits/:id/images
- * donnees : { image: "data:image/…;base64,…", texte_alternatif }
+ * Ajoute une ou plusieurs images : POST /api/admin/produits/:id/images
+ * donnees : [{ image: "data:image/…;base64,…", texte_alternatif }, ...]
  */
 ProduitData.ajouterImage = function (id, donnees) {
   return postRequest(`admin/produits/${encodeURIComponent(id)}/images`, donnees);
