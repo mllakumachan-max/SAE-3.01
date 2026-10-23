@@ -331,13 +331,13 @@ INSERT INTO OPTION_VALEUR (option_id, valeur, prix_supplement, ordre) VALUES
     ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Noire',    0.00, 3),
 
     -- Serviette
-    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Noire',   0.00, 1),
-    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Verte',   0.00, 2),
-    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Cuivre',  0.00, 3),
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Noire',   0.00, 1),
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Verte',   0.00, 2),
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Cuivre',  0.00, 3),
 
     -- Rideau velours
-    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Beige',  0.00, 1),
-    ((SELECT id FROM OPTION WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Rose',  0.00, 2);
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Beige',  0.00, 1),
+    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Rose',  0.00, 2);
 
 -- Galeries
 -- ---------------------------------------------------------------------------
