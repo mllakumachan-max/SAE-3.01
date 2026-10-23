@@ -1,6 +1,7 @@
 import { genericRenderer, htmlToFragment } from "../../../lib/utils.js";
 import { basculerTheme } from "../../../lib/theme.js";
 import { CategorieData } from "../../../data/categorie.js";
+import { BarreRechercheView } from "../../barre-recherche/index.js";
 import template from "./template.html?raw";
 import templateA from "./templateA.html?raw";
 import logoUrl from "../../../images/logo.webp";
@@ -39,6 +40,11 @@ let HeaderClientView = {
    */
   dom: function (data = {}, actions = {}) {
     let fragment = htmlToFragment(HeaderClientView.html(data));
+
+    let slotRecherche = fragment.querySelector('slot[name="recherche"]');
+    if (slotRecherche) {
+      slotRecherche.replaceWith(BarreRechercheView.dom(data, actions));
+    }
 
     let slotCategories = fragment.querySelector('slot[name="categories"]');
     if (slotCategories) {
