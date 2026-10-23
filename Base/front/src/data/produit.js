@@ -37,12 +37,13 @@ let mettreEnForme = function (produit) {
 
 /**
  * Met une image de galerie sous la forme attendue par la vue : une adresse
- * utilisable et un texte alternatif.
+ * utilisable, un texte alternatif et son ordre d'affichage.
  */
 let mettreImageEnForme = function (image) {
   return {
     src: urlImage(image.chemin),
     alt: image.texte_alternatif ?? "",
+    ordre: Number(image.ordre ?? 0),
   };
 };
 
@@ -81,10 +82,22 @@ ProduitData.fetchPage = async function (page, reglages, categorieSlug = null) {
 ProduitData.fetchBySlug = async function (slug) {
   let reponse = await getRequest(`produits/${encodeURIComponent(slug)}`);
 
-  return {
+   return {
     ...reponse,
     produit: mettreEnForme(reponse.produit),
     galerie: (reponse.galerie ?? []).map(mettreImageEnForme),
+    options: (reponse.options ?? []).map((option) => ({
+      id: option.id,
+      nom: option.nom,
+      ordre: option.ordre,
+      valeurs: (option.valeurs ?? []).map((valeur) => ({
+        id: valeur.id,
+        valeur: valeur.valeur,
+        // Les DECIMAL arrivent en texte : on les convertit en nombre.
+        prixSupplement: valeur.prix_supplement === null ? 0 : Number(valeur.prix_supplement),
+        ordre: valeur.ordre,
+      })),
+    })),
   };
 };
 
@@ -169,6 +182,62 @@ ProduitData.supprimerImage = function (id, imageId) {
   return deleteRequest(
     `admin/produits/${encodeURIComponent(id)}/images/${encodeURIComponent(imageId)}`
   );
+};
+
+/**
+ * Liste les options d'un produit pour l'admin :
+ * GET /api/admin/produits/:id/options  -> { options }
+ */
+ProduitData.fetchAdminOptions = function (id) {
+  return getRequest(`admin/produits/${encodeURIComponent(id)}/options`).then((reponse) => reponse.options);
+};
+
+/**
+ * Crée une option pour un produit :
+ * POST /api/admin/produits/:id/options -> { options }
+ */
+ProduitData.creerOption = function (produitId, donnees) {
+  return postRequest(`admin/produits/${encodeURIComponent(produitId)}/options`, donnees).then((reponse) => reponse.options);
+};
+
+/**
+ * Modifie une option :
+ * PUT /api/admin/produits/options/:id -> { options }
+ */
+ProduitData.modifierOption = function (id, donnees) {
+  return putRequest(`admin/produits/options/${encodeURIComponent(id)}`, donnees).then((reponse) => reponse.options);
+};
+
+/**
+ * Supprime une option (et ses valeurs) :
+ * DELETE /api/admin/produits/options/:id -> { options }
+ */
+ProduitData.supprimerOption = function (id) {
+  return deleteRequest(`admin/produits/options/${encodeURIComponent(id)}`).then((reponse) => reponse.options);
+};
+
+/**
+ * Ajoute une valeur à une option :
+ * POST /api/admin/produits/options/:id/valeurs -> { options }
+ */
+ProduitData.ajouterValeur = function (optionId, donnees) {
+  return postRequest(`admin/produits/options/${encodeURIComponent(optionId)}/valeurs`, donnees).then((reponse) => reponse.options);
+};
+
+/**
+ * Modifie une valeur d'option :
+ * PUT /api/admin/produits/valeurs/:id -> { options }
+ */
+ProduitData.modifierValeur = function (id, donnees) {
+  return putRequest(`admin/produits/valeurs/${encodeURIComponent(id)}`, donnees).then((reponse) => reponse.options);
+};
+
+/**
+ * Supprime une valeur d'option :
+ * DELETE /api/admin/produits/valeurs/:id -> { options }
+ */
+ProduitData.supprimerValeur = function (id) {
+  return deleteRequest(`admin/produits/valeurs/${encodeURIComponent(id)}`).then((reponse) => reponse.options);
 };
 
 export { ProduitData };

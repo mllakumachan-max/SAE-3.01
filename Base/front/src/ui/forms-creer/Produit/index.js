@@ -213,6 +213,186 @@ let ProduitFormView = {
       liste.appendChild(item);
     });
 
+    // -----------------------------------------------------------------------
+    // Options de personnalisation
+    // -----------------------------------------------------------------------
+    let zoneOptions = fragment.querySelector('[data-zone="options"]');
+    let listeOptions = fragment.querySelector('[data-zone="options-liste"]');
+
+    let lireChamp = (bloc, nom) => {
+      const input = bloc.querySelector(`[name="${nom}"]`);
+      return input ? input.value : "";
+    };
+
+    let construireBlocValeur = function (valeur) {
+      let bloc = document.createElement("div");
+      bloc.className = "flex flex-wrap gap-2 items-end";
+      bloc.dataset.valeurId = valeur.id;
+
+      let inputValeur = document.createElement("input");
+      inputValeur.type = "text";
+      inputValeur.name = "valeurValeur";
+      inputValeur.value = valeur.valeur;
+      inputValeur.placeholder = "Valeur (ex. Blanc)";
+      inputValeur.className = "rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+      inputValeur.maxLength = 80;
+
+      let inputPrix = document.createElement("input");
+      inputPrix.type = "number";
+      inputPrix.name = "valeurPrix";
+      inputPrix.min = "0";
+      inputPrix.max = "9999.99";
+      inputPrix.step = "0.01";
+      inputPrix.value = String(valeur.prixSupplement ?? 0);
+      inputPrix.placeholder = "0,00";
+      inputPrix.className = "h-9 w-24 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+
+      let inputOrdre = document.createElement("input");
+      inputOrdre.type = "number";
+      inputOrdre.name = "valeurOrdre";
+      inputOrdre.min = "0";
+      inputOrdre.max = "255";
+      inputOrdre.value = String(valeur.ordre ?? 1);
+      inputOrdre.className = "h-9 w-20 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+
+      let btnEnregistrer = document.createElement("button");
+      btnEnregistrer.type = "button";
+      btnEnregistrer.textContent = "Enregistrer";
+      btnEnregistrer.className = "h-9 rounded-md text-12 text-text-secondary underline hover:text-text-primary";
+      btnEnregistrer.addEventListener("click", () => {
+        options.surModifierValeur?.(
+          Number(bloc.dataset.valeurId),
+          lireChamp(bloc, "valeurValeur"),
+          lireChamp(bloc, "valeurPrix"),
+          Number(lireChamp(bloc, "valeurOrdre") || 1)
+        );
+      });
+
+      let btnSupprimer = document.createElement("button");
+      btnSupprimer.type = "button";
+      btnSupprimer.textContent = "Supprimer";
+      btnSupprimer.className = "h-9 rounded-md text-12 text-red-700 underline hover:text-red-900 dark:text-red-400";
+      btnSupprimer.addEventListener("click", () => {
+        options.surSupprimerValeur?.(Number(bloc.dataset.valeurId));
+      });
+
+      bloc.append(inputValeur, inputPrix, inputOrdre, btnEnregistrer, btnSupprimer);
+      return bloc;
+    };
+
+    let construireBlocOption = function (option) {
+      let bloc = document.createElement("div");
+      bloc.className = "flex flex-col gap-3 rounded-md border p-3";
+      bloc.dataset.optionId = option.id;
+
+      let entete = document.createElement("div");
+      entete.className = "flex flex-wrap gap-3 items-end";
+
+      let inputNom = document.createElement("input");
+      inputNom.type = "text";
+      inputNom.name = "optionNom";
+      inputNom.value = option.nom;
+      inputNom.placeholder = "Nom de l'option";
+      inputNom.className = "rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+      inputNom.maxLength = 80;
+
+      let inputOrdre = document.createElement("input");
+      inputOrdre.type = "number";
+      inputOrdre.name = "optionOrdre";
+      inputOrdre.min = "0";
+      inputOrdre.max = "255";
+      inputOrdre.value = String(option.ordre ?? 1);
+      inputOrdre.className = "h-9 w-20 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+
+      let btnEnregistrerOption = document.createElement("button");
+      btnEnregistrerOption.type = "button";
+      btnEnregistrerOption.textContent = "Enregistrer";
+      btnEnregistrerOption.className = "h-9 rounded-md text-12 text-text-secondary underline hover:text-text-primary";
+      btnEnregistrerOption.addEventListener("click", () => {
+        options.surModifierOption?.(
+          Number(bloc.dataset.optionId),
+          lireChamp(bloc, "optionNom"),
+          Number(lireChamp(bloc, "optionOrdre") || 1)
+        );
+      });
+
+      let btnSupprimerOption = document.createElement("button");
+      btnSupprimerOption.type = "button";
+      btnSupprimerOption.textContent = "Supprimer l'option";
+      btnSupprimerOption.className = "h-9 rounded-md text-12 text-red-700 underline hover:text-red-900 dark:text-red-400";
+      btnSupprimerOption.addEventListener("click", () => {
+        options.surSupprimerOption?.(Number(bloc.dataset.optionId));
+      });
+
+      entete.append(inputNom, inputOrdre, btnEnregistrerOption, btnSupprimerOption);
+
+      let listeValeurs = document.createElement("div");
+      listeValeurs.className = "ml-4 flex flex-col gap-2";
+      (option.valeurs || []).forEach((valeur) => {
+        listeValeurs.appendChild(construireBlocValeur(valeur));
+      });
+
+      let ajoutValeur = document.createElement("div");
+      ajoutValeur.className = "flex flex-wrap gap-2 items-end mt-2";
+      let inputNouvelleValeur = document.createElement("input");
+      inputNouvelleValeur.type = "text";
+      inputNouvelleValeur.name = "nouvelleValeurValeur";
+      inputNouvelleValeur.placeholder = "Nouvelle valeur";
+      inputNouvelleValeur.className = "rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+      inputNouvelleValeur.maxLength = 80;
+
+      let inputNouveauPrix = document.createElement("input");
+      inputNouveauPrix.type = "number";
+      inputNouveauPrix.name = "nouvelleValeurPrix";
+      inputNouveauPrix.min = "0";
+      inputNouveauPrix.max = "9999.99";
+      inputNouveauPrix.step = "0.01";
+      inputNouveauPrix.placeholder = "Supplément €";
+      inputNouveauPrix.className = "h-9 w-28 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+
+      let inputNouvelOrdre = document.createElement("input");
+      inputNouvelOrdre.type = "number";
+      inputNouvelOrdre.name = "nouvelleValeurOrdre";
+      inputNouvelOrdre.min = "0";
+      inputNouvelOrdre.max = "255";
+      inputNouvelOrdre.value = "1";
+      inputNouvelOrdre.className = "h-9 w-20 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary";
+
+      let btnAjouterValeur = document.createElement("button");
+      btnAjouterValeur.type = "button";
+      btnAjouterValeur.textContent = "Ajouter la valeur";
+      btnAjouterValeur.className = "h-9 rounded-md text-12 text-text-secondary underline hover:text-text-primary";
+      btnAjouterValeur.addEventListener("click", () => {
+        options.surAjouterValeur?.(
+          Number(bloc.dataset.optionId),
+          inputNouvelleValeur.value,
+          inputNouveauPrix.value,
+          Number(inputNouvelOrdre.value || 1)
+        );
+      });
+
+      ajoutValeur.append(inputNouvelleValeur, inputNouveauPrix, inputNouvelOrdre, btnAjouterValeur);
+
+      bloc.append(entete, listeValeurs, ajoutValeur);
+      return bloc;
+    };
+
+    let afficherOptions = function () {
+      listeOptions.innerHTML = "";
+      (edition.options || []).forEach((option) => {
+        listeOptions.appendChild(construireBlocOption(option));
+      });
+    };
+
+    afficherOptions();
+
+    // Ajout d'une option (nouveau bloc en haut du formulaire).
+    fragment.querySelector('[data-action="ajouter-option"]').addEventListener("click", () => {
+      let nomInput = fragment.querySelector('[name="nouvelleOptionNom"]');
+      let ordreInput = fragment.querySelector('[name="nouvelleOptionOrdre"]');
+      options.surAjouterOption?.(nomInput ? nomInput.value : "", Number(ordreInput ? ordreInput.value : 1) || 1);
+    });
+
     formulaire.addEventListener("submit", (ev) => {
       ev.preventDefault();
       let v = ProduitFormView.lireSaisie(formulaire, fichiersSelectionnes);

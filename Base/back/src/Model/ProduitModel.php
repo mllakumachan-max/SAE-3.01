@@ -217,10 +217,10 @@ final class ProduitModel
     public function galerie(int $produitId): array
     {
         $requetePreparee = $this->pdo->prepare(
-            'SELECT chemin, texte_alternatif
+            'SELECT chemin, texte_alternatif, ordre
                FROM GALERIE
               WHERE produit_id = :produit
-           ORDER BY ordre ASC, id ASC'
+            ORDER BY ordre ASC, id ASC'
         );
         $requetePreparee->bindValue(':produit', $produitId, PDO::PARAM_INT);
         $requetePreparee->execute();
@@ -229,9 +229,114 @@ final class ProduitModel
             static fn (array $ligne): array => [
                 'chemin'           => $ligne['chemin'],
                 'texte_alternatif' => $ligne['texte_alternatif'],
+                'ordre'            => (int) $ligne['ordre'],
             ],
             $requetePreparee->fetchAll()
         );
+    }
+
+    /**
+     * Crée une option de personnalisation pour un produit. Renvoie son identifiant.
+     *
+     * @param string $nom    Nom de l'option (ex: « Couleur »).
+     * @param int    $ordre  Ordre d'affichage de l'option.
+     */
+    public function creerOption(int $produitId, string $nom, int $ordre): int
+    {
+        $requete = $this->pdo->prepare(
+            'INSERT INTO OPTION_PRODUIT (produit_id, nom, ordre)
+             VALUES (:produit, :nom, :ordre)'
+        );
+        $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        $requete->bindValue(':nom', $nom, PDO::PARAM_STR);
+        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
+        $requete->execute();
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Modifie une option existante (nom et/ou ordre).
+     */
+    public function modifierOption(int $id, string $nom, int $ordre): void
+    {
+        $requete = $this->pdo->prepare(
+            'UPDATE OPTION_PRODUIT SET nom = :nom, ordre = :ordre WHERE id = :id'
+        );
+        $requete->bindValue(':nom', $nom, PDO::PARAM_STR);
+        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+    }
+
+    /**
+     * Supprime une option et toutes ses valeurs.
+     */
+    public function supprimerOption(int $id): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $requete = $this->pdo->prepare('DELETE FROM OPTION_VALEUR WHERE option_id = :option');
+            $requete->bindValue(':option', $id, PDO::PARAM_INT);
+            $requete->execute();
+
+            $requete = $this->pdo->prepare('DELETE FROM OPTION_PRODUIT WHERE id = :id');
+            $requete->bindValue(':id', $id, PDO::PARAM_INT);
+            $requete->execute();
+
+            $this->pdo->commit();
+        } catch (\Throwable $erreur) {
+            $this->pdo->rollBack();
+            throw $erreur;
+        }
+    }
+
+    /**
+     * Ajoute une valeur à une option. Renvoie son identifiant.
+     *
+     * @param string $valeur          Libellé de la valeur (ex: « Blanc »).
+     * @param string $prixSupplement  Supplément de prix, format « 2.00 ».
+     * @param int    $ordre           Ordre d'affichage de la valeur.
+     */
+    public function ajouterValeur(int $optionId, string $valeur, string $prixSupplement, int $ordre): int
+    {
+        $requete = $this->pdo->prepare(
+            'INSERT INTO OPTION_VALEUR (option_id, valeur, prix_supplement, ordre)
+             VALUES (:option, :valeur, :prix, :ordre)'
+        );
+        $requete->bindValue(':option', $optionId, PDO::PARAM_INT);
+        $requete->bindValue(':valeur', $valeur, PDO::PARAM_STR);
+        $requete->bindValue(':prix', $prixSupplement, PDO::PARAM_STR);
+        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
+        $requete->execute();
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /**
+     * Modifie une valeur d'option existante.
+     */
+    public function modifierValeur(int $id, string $valeur, string $prixSupplement, int $ordre): void
+    {
+        $requete = $this->pdo->prepare(
+            'UPDATE OPTION_VALEUR SET valeur = :valeur, prix_supplement = :prix, ordre = :ordre WHERE id = :id'
+        );
+        $requete->bindValue(':valeur', $valeur, PDO::PARAM_STR);
+        $requete->bindValue(':prix', $prixSupplement, PDO::PARAM_STR);
+        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+    }
+
+    /**
+     * Supprime une valeur d'option.
+     */
+    public function supprimerValeur(int $id): void
+    {
+        $requete = $this->pdo->prepare('DELETE FROM OPTION_VALEUR WHERE id = :id');
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
     }
 
     /**
@@ -283,6 +388,60 @@ final class ProduitModel
         }
 
         return array_values($options);
+    }
+
+    /**
+     * Une option par son identifiant, avec le produit auquel elle est rattachée.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function trouverOption(int $id): ?array
+    {
+        $requete = $this->pdo->prepare(
+            'SELECT OPTION_PRODUIT.id, OPTION_PRODUIT.produit_id
+               FROM OPTION_PRODUIT
+              WHERE OPTION_PRODUIT.id = :id'
+        );
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+
+        $ligne = $requete->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return [
+            'id'         => (int) $ligne['id'],
+            'produit_id' => (int) $ligne['produit_id'],
+        ];
+    }
+
+    /**
+     * Une valeur d'option par son identifiant, avec son option parente.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function trouverValeur(int $id): ?array
+    {
+        $requete = $this->pdo->prepare(
+            'SELECT OPTION_VALEUR.id, OPTION_VALEUR.option_id
+               FROM OPTION_VALEUR
+              WHERE OPTION_VALEUR.id = :id'
+        );
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+
+        $ligne = $requete->fetch();
+
+        if ($ligne === false) {
+            return null;
+        }
+
+        return [
+            'id'        => (int) $ligne['id'],
+            'option_id' => (int) $ligne['option_id'],
+        ];
     }
 
     /**

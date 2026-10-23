@@ -212,6 +212,118 @@ final class ProduitAdminController
         Response::json(['supprimee' => true]);
     }
 
+    // -----------------------------------------------------------------------
+    // Options de personnalisation d'un produit
+    // -----------------------------------------------------------------------
+
+    // GET /api/admin/produits/:id/options
+    public function options(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerExistant($id);
+
+        Response::json(['options' => $this->produits->optionsDuProduit($id)]);
+    }
+
+    // POST /api/admin/produits/:id/options
+    public function creerOption(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerExistant($id);
+
+        $donnees = $this->validerOption($requete->corps());
+
+        $identifiant = $this->produits->creerOption($id, $donnees['nom'], $donnees['ordre']);
+
+        Response::json(['option' => $this->produits->optionsDuProduit($id)], 201);
+    }
+
+    // PUT /api/admin/produits/options/:id
+    public function modifierOption(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerOptionExistante($id);
+
+        $donnees = $this->validerOption($requete->corps());
+
+        $this->produits->modifierOption($id, $donnees['nom'], $donnees['ordre']);
+
+        // On retrouve le produit parent pour renvoyer ses options à jour.
+        $option = $this->produits->trouverOption($id);
+        Response::json(['options' => $this->produits->optionsDuProduit($option['produit_id'])]);
+    }
+
+    // DELETE /api/admin/produits/options/:id
+    public function supprimerOption(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerOptionExistante($id);
+
+        $option = $this->produits->trouverOption($id);
+        $produitId = $option['produit_id'];
+
+        $this->produits->supprimerOption($id);
+
+        Response::json(['options' => $this->produits->optionsDuProduit($produitId)]);
+    }
+
+    // POST /api/admin/produits/options/:id/valeurs
+    public function ajouterValeur(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerOptionExistante($id);
+
+        $donnees = $this->validerValeur($requete->corps());
+
+        $identifiant = $this->produits->ajouterValeur($id, $donnees['valeur'], $donnees['prix_supplement'], $donnees['ordre']);
+
+        $option = $this->produits->trouverOption($id);
+        Response::json(['options' => $this->produits->optionsDuProduit($option['produit_id'])], 201);
+    }
+
+    // PUT /api/admin/produits/valeurs/:id
+    public function modifierValeur(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerValeurExistante($id);
+
+        $donnees = $this->validerValeur($requete->corps());
+
+        $this->produits->modifierValeur($id, $donnees['valeur'], $donnees['prix_supplement'], $donnees['ordre']);
+
+        $valeur = $this->produits->trouverValeur($id);
+        Response::json(['options' => $this->produits->optionsDuProduit($valeur['option_id'])]);
+    }
+
+    // DELETE /api/admin/produits/valeurs/:id
+    public function supprimerValeur(Request $requete): void
+    {
+        $this->exigerAdmin();
+
+        $id = $this->identifiant($requete, 'id');
+        $this->exigerValeurExistante($id);
+
+        $valeur = $this->produits->trouverValeur($id);
+        $optionId = $valeur['option_id'];
+
+        $this->produits->supprimerValeur($id);
+
+        $option = $this->produits->trouverOption($optionId);
+        Response::json(['options' => $this->produits->optionsDuProduit($option['produit_id'])]);
+    }
+
     /**
      * Contrôle la saisie et renvoie les valeurs prêtes pour le modèle.
      * Arrête la requête avec une erreur 400 si la saisie est incohérente.
@@ -256,6 +368,62 @@ final class ProduitAdminController
             'stock'         => $this->entier($corps['stock'] ?? null, 'Le stock', self::STOCK_MAX),
             'seuil_alerte'  => $this->entier($corps['seuil_alerte'] ?? null, 'Le seuil d\'alerte', self::SEUIL_MAX),
         ];
+    }
+
+    /**
+     * Valide la saisie d'une option (nom, ordre).
+     *
+     * @return array{nom: string, ordre: int}
+     */
+    private function validerOption(array $corps): array
+    {
+        $nom = $this->texte($corps, 'nom', 80, 'Le nom de l\'option');
+
+        if ($nom === null || $nom === '') {
+            Response::erreur('Le nom de l\'option est obligatoire.', 400);
+        }
+
+        $ordre = $this->entier($corps['ordre'] ?? null, 'L\'ordre de l\'option', 255);
+
+        return ['nom' => $nom, 'ordre' => $ordre];
+    }
+
+    /**
+     * Valide la saisie d'une valeur d'option (valeur, supplément de prix, ordre).
+     *
+     * @return array{valeur: string, prix_supplement: string, ordre: int}
+     */
+    private function validerValeur(array $corps): array
+    {
+        $valeur = $this->texte($corps, 'valeur', 80, 'La valeur de l\'option');
+
+        if ($valeur === null || $valeur === '') {
+            Response::erreur('La valeur de l\'option est obligatoire.', 400);
+        }
+
+        $prixSupplement = $this->montant($corps['prix_supplement'] ?? null, 'Le supplément de prix', true);
+
+        $ordre = $this->entier($corps['ordre'] ?? null, 'L\'ordre de la valeur', 255);
+
+        return [
+            'valeur'           => $valeur,
+            'prix_supplement'  => $prixSupplement,
+            'ordre'            => $ordre,
+        ];
+    }
+
+    private function exigerOptionExistante(int $id): void
+    {
+        if ($this->produits->trouverOption($id) === null) {
+            Response::erreur('Option introuvable.', 404);
+        }
+    }
+
+    private function exigerValeurExistante(int $id): void
+    {
+        if ($this->produits->trouverValeur($id) === null) {
+            Response::erreur('Valeur d\'option introuvable.', 404);
+        }
     }
 
     /**

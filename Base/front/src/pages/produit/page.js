@@ -55,6 +55,30 @@ C.charger = async function (slug) {
 };
 
 /**
+ * L'ordre de la galerie à afficher en principal, déduit de l'option
+ * sélectionnée. La valeur choisie d'une option porte un ordre ; si une image
+ * de la galerie porte le même ordre, c'est elle qui est montrée.
+ * (Ex: option « Couleur », valeur « Blanc » d'ordre 1 → image d'ordre 1.)
+ *
+ * @returns {number|null}
+ */
+C.ordreImageActive = function () {
+  if (M.produit === null) return null;
+
+  for (const option of M.options) {
+    const valeurChoisie = M.selection[option.nom];
+    if (valeurChoisie === undefined) continue;
+
+    const valeur = (option.valeurs || []).find((v) => v.valeur === valeurChoisie);
+    if (valeur && M.galerie.some((img) => img.ordre === valeur.ordre)) {
+      return valeur.ordre;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Le produit sous la forme attendue par les composants : la galerie s'y
  * range avec lui, et les liens de retour y sont calculés.
  */
@@ -69,6 +93,7 @@ C.produitAffichage = function () {
     options: M.options,
     selection: M.selection,
     quantite: M.quantite,
+    activeOrdre: C.ordreImageActive(),
     prixBase: Number(M.produit.prix || 0),
     prixActuel: C.prixActuel(),
     lienCatalogue: "/",

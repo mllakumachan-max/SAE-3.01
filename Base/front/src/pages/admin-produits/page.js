@@ -111,6 +111,7 @@ C.valeursVides = function () {
     nom: "", reference: "", categorieId: "", marque: "", format: "", badge: "",
     description: "", prix: "", prixUnitaire: "", unitePrix: "", stock: 0, seuilAlerte: 5,
     images: [],
+    options: [],
   };
 };
 
@@ -161,16 +162,22 @@ C.lireDataUrl = function (fichier) {
 };
 
 C.handler_ouvrirCreation = function () {
-  M.edition = { id: null, valeurs: C.valeursVides(), images: [] };
+  M.edition = { id: null, valeurs: C.valeursVides(), images: [], options: [] };
   M.suppression = null;
   M.message = null;
   V.rafraichir();
 };
 
-C.handler_ouvrirModification = function (id) {
+C.handler_ouvrirModification = async function (id) {
   const produit = C.trouverProduit(id);
   if (!produit) return;
-  M.edition = { id: produit.id, valeurs: C.valeursDepuis(produit), images: produit.images };
+  let options = [];
+  try {
+    options = await ProduitData.fetchAdminOptions(produit.id);
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: `Impossible de charger les options : ${erreur.message}` };
+  }
+  M.edition = { id: produit.id, valeurs: C.valeursDepuis(produit), images: produit.images, options };
   M.suppression = null;
   M.message = null;
   V.rafraichir();
@@ -247,6 +254,86 @@ C.handler_supprimerImage = async function (imageId, valeursCourantes) {
     M.message = { type: "erreur", texte: erreur.message };
   }
 
+  V.rafraichir();
+};
+
+/** Crée une option pour le produit en cours d'édition. */
+C.handler_ajouterOption = async function (nom, ordre) {
+  if (!M.edition?.id) return;
+  try {
+    M.edition.options = await ProduitData.creerOption(M.edition.id, { nom, ordre });
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
+  V.rafraichir();
+};
+
+/** Ajoute une valeur à une option du produit en cours d'édition. */
+C.handler_ajouterValeur = async function (optionId, valeur, prixSupplement, ordre) {
+  if (!M.edition?.id) return;
+  try {
+    M.edition.options = await ProduitData.ajouterValeur(optionId, {
+      valeur,
+      prix_supplement: prixSupplement,
+      ordre,
+    });
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
+  V.rafraichir();
+};
+
+/** Modifie une option du produit en cours d'édition. */
+C.handler_modifierOption = async function (id, nom, ordre) {
+  if (!M.edition?.id) return;
+  try {
+    M.edition.options = await ProduitData.modifierOption(id, { nom, ordre });
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
+  V.rafraichir();
+};
+
+/** Supprime une option (et ses valeurs) du produit en cours d'édition. */
+C.handler_supprimerOption = async function (id) {
+  if (!M.edition?.id) return;
+  try {
+    M.edition.options = await ProduitData.supprimerOption(id);
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
+  V.rafraichir();
+};
+
+/** Modifie une valeur d'option du produit en cours d'édition. */
+C.handler_modifierValeur = async function (id, valeur, prixSupplement, ordre) {
+  if (!M.edition?.id) return;
+  try {
+    M.edition.options = await ProduitData.modifierValeur(id, {
+      valeur,
+      prix_supplement: prixSupplement,
+      ordre,
+    });
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
+  V.rafraichir();
+};
+
+/** Supprime une valeur d'option du produit en cours d'édition. */
+C.handler_supprimerValeur = async function (id) {
+  if (!M.edition?.id) return;
+  try {
+    M.edition.options = await ProduitData.supprimerValeur(id);
+    M.message = null;
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+  }
   V.rafraichir();
 };
 
@@ -350,6 +437,12 @@ V.createPageFragment = function () {
           surEnregistrer: C.handler_enregistrer,
           surAnnuler: C.handler_annulerFormulaire,
           surSupprimerImage: C.handler_supprimerImage,
+          surAjouterOption: C.handler_ajouterOption,
+          surAjouterValeur: C.handler_ajouterValeur,
+          surModifierOption: C.handler_modifierOption,
+          surSupprimerOption: C.handler_supprimerOption,
+          surModifierValeur: C.handler_modifierValeur,
+          surSupprimerValeur: C.handler_supprimerValeur,
         })
       : ""
   );

@@ -71,7 +71,10 @@ C.handler_deconnexion = async function () {
   document.dispatchEvent(new Event("admin:deconnexion-terminee"));
 };
 
-document.addEventListener("admin:deconnexion", C.handler_deconnexion);
+document.addEventListener("admin:quitter", () => {
+  AuthData.logout().catch(() => {});
+  definirAdminConnecte(false);
+});
 
 C.init = async function () {
   M.message = null;

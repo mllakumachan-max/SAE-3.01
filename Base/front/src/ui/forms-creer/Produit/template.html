@@ -90,6 +90,17 @@
             <div data-zone="fichiers-selectionnes" class="hidden flex flex-col gap-2 rounded-md border border-border-default bg-surface-default p-3"></div>
         </div>
 
+        <div data-zone="options" class="mt-6 border-t border-border-default pt-4 c-formulaires-forms-produit__options">
+            <h3 class="mb-3 text-14 font-medium text-text-primary">Options de personnalisation</h3>
+            <div data-zone="options-liste" class="flex flex-col gap-3"></div>
+            <div class="mt-2 flex flex-wrap gap-3">
+                <input name="nouvelleOptionNom" type="text" placeholder="Nom de l'option (ex. Couleur)" class="rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+                <input name="nouvelleOptionOrdre" type="number" min="0" max="255" value="1" placeholder="Ordre" class="h-10 w-24 rounded-md border bg-surface-default px-3 text-14 font-normal border-border-default text-text-primary" />
+                <button type="button" data-action="ajouter-option" class="h-10 rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text hover:opacity-90">Ajouter l'option</button>
+            </div>
+            <p class="mt-2 text-12 text-text-secondary">Chaque valeur peut prévoir un supplément de prix (ex. « Beige » +2,00 €). L'ordre d'une valeur désigne l'image de la galerie qui s'affiche quand elle est choisie.</p>
+        </div>
+
         <div class="mt-2 flex justify-end gap-3">
             <button type="button" data-action="annuler" class="h-10 rounded-md border px-4 text-14 font-medium text-text-secondary hover:bg-surface-subtle border-border-default">Annuler</button>
             <button type="submit" class="h-10 rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text hover:opacity-90">Enregistrer</button>

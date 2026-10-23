@@ -3,15 +3,23 @@ import template from "./template.html?raw";
 
 /**
  * Galerie d'images d'un produit : image principale, flèches et miniatures.
- * images : [{ src, alt }]
+ * images : [{ src, alt, ordre }]
+ *
+ * options.activeOrdre : ordre de l'image à afficher en principal (optionnel).
+ *   Quand il correspond à une image, celle-ci est affichée et sa miniature
+ *   est mise en avant. Sinon, la première image est affichée.
  */
 let GalerieImagesView = {
   html: function () {
     return template;
   },
 
-  /** @param {Array<{src: string, alt?: string}>} images @returns {DocumentFragment} */
-  dom: function (images = []) {
+  /**
+   * @param {Array<{src: string, alt?: string, ordre: number}>} images
+   * @param {{activeOrdre?: number|null}} options
+   * @returns {DocumentFragment}
+   */
+  dom: function (images = [], options = {}) {
     let fragment = htmlToFragment(template);
     let principale = fragment.querySelector('[data-zone="principale"]');
     let zoneMiniatures = fragment.querySelector('[data-zone="miniatures"]');
@@ -19,6 +27,7 @@ let GalerieImagesView = {
     let btnSuiv = fragment.querySelector('[data-action="suivant"]');
     let index = 0;
     let miniatures = [];
+    let activeOrdre = options.activeOrdre ?? null;
 
     let zoneIndex = fragment.querySelector('[data-zone="index-image"]');
     let zoneTotal = fragment.querySelector('[data-zone="total-images"]');
@@ -31,6 +40,18 @@ let GalerieImagesView = {
       if (btnPrec) btnPrec.hidden = true;
       if (btnSuiv) btnSuiv.hidden = true;
     }
+
+    // Indice de l'image à afficher : celle dont l'ordre correspond à
+    // activeOrdre, sinon la première.
+    let indiceActif = function () {
+      if (activeOrdre !== null) {
+        const trouve = images.findIndex((img) => img.ordre === activeOrdre);
+        if (trouve !== -1) {
+          return trouve;
+        }
+      }
+      return 0;
+    };
 
     let afficher = (i) => {
       index = (i + images.length) % images.length;
@@ -57,10 +78,7 @@ let GalerieImagesView = {
       miniatures.push(bouton);
     });
 
-    if (btnPrec) btnPrec.addEventListener("click", () => afficher(index - 1));
-    if (btnSuiv) btnSuiv.addEventListener("click", () => afficher(index + 1));
-
-    if (images.length > 0) afficher(0);
+    if (images.length > 0) afficher(indiceActif());
     return fragment;
   },
 };

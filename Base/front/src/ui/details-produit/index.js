@@ -98,7 +98,9 @@ let DetailProduitView = {
     // Galerie d'images insérée dans son slot
     let slotGalerie = fragment.querySelector('slot[name="galerie"]');
     if (slotGalerie) {
-      slotGalerie.replaceWith(GalerieImagesView.dom(produit.images ?? []));
+      slotGalerie.replaceWith(
+        GalerieImagesView.dom(produit.images ?? [], { activeOrdre: produit.activeOrdre })
+      );
     }
 
     // Liens de retour : vers le catalogue, et vers la catégorie du produit

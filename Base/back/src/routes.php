@@ -46,6 +46,15 @@ return [
     'PUT  /api/admin/categories/:id'    => [CategorieAdminController::class, 'modifier'],
     'PUT  /api/admin/produits/:id'      => [ProduitAdminController::class, 'modifier'],
 
+    // Options de personnalisation d'un produit
+    'GET  /api/admin/produits/:id/options'   => [ProduitAdminController::class, 'options'],
+    'POST /api/admin/produits/:id/options'   => [ProduitAdminController::class, 'creerOption'],
+    'PUT  /api/admin/produits/options/:id'   => [ProduitAdminController::class, 'modifierOption'],
+    'DELETE /api/admin/produits/options/:id' => [ProduitAdminController::class, 'supprimerOption'],
+    'POST /api/admin/produits/options/:id/valeurs' => [ProduitAdminController::class, 'ajouterValeur'],
+    'PUT  /api/admin/produits/valeurs/:id'   => [ProduitAdminController::class, 'modifierValeur'],
+    'DELETE /api/admin/produits/valeurs/:id' => [ProduitAdminController::class, 'supprimerValeur'],
+
     // DELETE
     'DELETE /api/admin/categories/:id'                  => [CategorieAdminController::class, 'supprimer'],
     'DELETE /api/admin/produits/:id'                    => [ProduitAdminController::class, 'supprimer'],
