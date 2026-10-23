@@ -1,5 +1,6 @@
 import { htmlToFragment } from "../../lib/utils.js";
 import { estAdminConnecte } from "../../lib/admin-session.js";
+import { nombreArticles } from "../../lib/panier.js";
 import { HeaderClientView } from "../../ui/header/Client/index.js";
 import { HeaderAdminView } from "../../ui/header/Admin/index.js";
 import template from "./template.html?raw";
@@ -28,6 +29,8 @@ export function RootLayout(path = "/") {
       }
     : {};
 
-  layout.querySelector('slot[name="header"]').replaceWith(HeaderView.dom(actions));
+  const data = estAdmin ? {} : { nbArticles: nombreArticles() };
+
+  layout.querySelector('slot[name="header"]').replaceWith(HeaderView.dom(data, actions));
   return layout;
 }

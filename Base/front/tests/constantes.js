@@ -14,7 +14,7 @@
  * contre une autre adresse (le site déployé, par exemple).
  */
 export const BASE_URL =
-  process.env.SAE301_BASE_URL ?? "http://localhost:5174/~ribatet1/SAE-3.01/Base/";
+  process.env.SAE301_BASE_URL ?? "http://localhost:5173/~ribatet1/SAE-3.01/Base/";
 
 /**
  * Racine de l'API. Le back est servi au même endroit que le front, sous le

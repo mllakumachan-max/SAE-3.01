@@ -23,6 +23,8 @@ export default defineConfig({
   // qu'en production : les cookies de l'API (préférences, session) sont
   // acceptés et renvoyés comme sur le serveur.
   server: {
+    port: 5173,
+    strictPort: true,
     proxy: {
       [BASE + "api"]: { target: SERVEUR, changeOrigin: true },
     },

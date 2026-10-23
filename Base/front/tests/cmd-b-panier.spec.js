@@ -23,8 +23,8 @@ import { aller, api, cartes, url } from "./helpers.js";
  */
 test.describe("US CMD-b — Panier d'achat", () => {
   test.beforeEach(async ({ page }) => {
-    await page.evaluate(() => window.localStorage.clear());
     await aller(page);
+    await page.evaluate(() => window.localStorage.clear());
   });
 
   test("CA — J'ajoute des produits depuis le catalogue et depuis les pages détail", async ({ page }) => {
@@ -44,7 +44,7 @@ test.describe("US CMD-b — Panier d'achat", () => {
   });
 
   test("CA — Une icône panier avec compteur d'articles est visible", async ({ page }) => {
-    await expect(page.locator('a[href="/panier"] [data-role="compteur-panier"]')).toBeVisible();
+    await expect(page.locator('a[href$="/panier"] [data-role="compteur-panier"]')).toBeVisible();
   });
 
   test("CA — Je peux consulter mon panier (liste des produits)", async ({ page }) => {
@@ -107,5 +107,4 @@ test.describe("US CMD-b — Panier d'achat", () => {
     expect(await page.evaluate(() => /** @type {any} */ (window).__marqueur)).toBe("vivant");
   });
 });
-EOF
 "C:\Users\mllak\Downloads\sae\SAE-3.01\Base\front\tests\cmd-b-panier.spec.js"

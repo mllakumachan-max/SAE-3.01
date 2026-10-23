@@ -7,177 +7,151 @@
 # Test info
 
 - Name: dec-b-catalogue.spec.js >> US DEC-b — Catalogue de produits >> CA — Chaque produit affiche nom, prix et image principale
-- Location: tests\dec-b-catalogue.spec.js:58:3
+- Location: tests/dec-b-catalogue.spec.js:58:3
 
 # Error details
 
 ```
-Error: expect(locator).not.toBeEmpty() failed
+Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('#app')
-Expected: not empty
-Received: empty
+Locator: locator('main article').first().locator('img').first()
+Expected pattern: /\S+/
+Received string:  ""
+Timeout: 5000ms
 
 Call log:
-  - Expect "not toBeEmpty" locator('#app') with timeout 20000ms
-  - waiting for locator('#app')
-    14 × locator resolved to <div id="app"></div>
-       - unexpected value "empty"
-  - Target page, context or browser has been closed
+  - Expect "toHaveAttribute" locator('main article').first().locator('img').first() with timeout 5000ms
+  - waiting for locator('main article').first().locator('img').first()
+    14 × locator resolved to <img src="" loading="lazy" alt="Amplificateur Wi-Fi" class="h-full w-full object-contain text-text-primary transition-transform duration-200 hover:scale-105"/>
+       - unexpected value ""
 
+```
+
+```yaml
+- img "Amplificateur Wi-Fi"
 ```
 
 # Test source
 
 ```ts
   1   | // @ts-check
-  2   | import { expect } from "@playwright/test";
-  3   | import { API_URL, BASE_URL } from "./constantes.js";
+  2   | import { test, expect } from "@playwright/test";
+  3   | import { aller, api, cartes, attendreImage, url, PRIX } from "./helpers.js";
   4   | 
   5   | /**
-  6   |  * Outils partagés par les tests Playwright.
+  6   |  * US DEC-b — Catalogue de produits
   7   |  *
-  8   |  * Les tests traversent le navigateur comme le ferait un visiteur : ils
-  9   |  * cliquent, ils lisent l'écran, ils regardent l'adresse. Les appels directs à
-  10  |  * l'API servent de référence : on compare ce que voit la page avec ce que
-  11  |  * renvoie le serveur, pour que le test vérifie la même chose des deux côtés.
-  12  |  */
-  13  | 
-  14  | /**
-  15  |  * Adresse absolue d'une route du site.
-  16  |  *
-  17  |  * Le chemin est relatif ("categorie/habitat") : la base du projet est
-  18  |  * ajoutée, comme le fait le routeur du front. Un chemin commence par « / »
-  19  |  * serait interprété comme la racine du serveur, et perdrait la base.
-  20  |  *
-  21  |  * @param {string} chemin Route du site, sans la base du projet.
-  22  |  * @returns {string}
-  23  |  */
-  24  | export function url(chemin = "") {
-  25  |   return new URL(chemin.replace(/^\//, ""), BASE_URL).toString();
-  26  | }
-  27  | 
-  28  | /**
-  29  |  * Va à une adresse du site et attend que le routeur du front ait affiché
-  30  |  * une page.
-  31  |  *
-  32  |  * @param {import("@playwright/test").Page} page
-  33  |  * @param {string} chemin Route du site, sans la base du projet.
-  34  |  */
-  35  | export async function aller(page, chemin = "") {
-  36  |   await page.goto(url(chemin));
-  37  |   await attendreApp(page);
-  38  | }
-  39  | 
-  40  | /**
-  41  |  * Attend que l'application ait affiché une page (le routeur a remplacé le
-  42  |  * contenu de #app).
-  43  |  *
-  44  |  * @param {import("@playwright/test").Page} page
-  45  |  */
-  46  | export async function attendreApp(page) {
-  47  |   // Le routeur attend la réponse de l'API avant d'afficher la page : on lui
-  48  |   // laisse le temps, l'API étant servie par le serveur de l'IUT.
-> 49  |   await expect(page.locator("#app")).not.toBeEmpty({ timeout: 20000 });
-      |                                          ^ Error: expect(locator).not.toBeEmpty() failed
-  50  | }
-  51  | 
-  52  | /**
-  53  |  * Les cartes produit de la grille du catalogue.
-  54  |  *
-  55  |  * @param {import("@playwright/test").Page} page
-  56  |  */
-  57  | export function cartes(page) {
-  58  |   return page.locator("main article");
-  59  | }
-  60  | 
-  61  | /**
-  62  |  * La barre de navigation des catégories, dans l'en-tête du site.
-  63  |  *
-  64  |  * @param {import("@playwright/test").Page} page
-  65  |  */
-  66  | export function menuCategories(page) {
-  67  |   return page.locator("header nav");
-  68  | }
-  69  | 
-  70  | /**
-  71  |  * Appelle l'API depuis la page, avec les cookies de session du visiteur.
-  72  |  *
-  73  |  * L'appel est fait dans la page : il part donc de la même origine que le
-  74  |  * front, et le cookie de session est envoyé comme dans un vrai navigateur.
-  75  |  *
-  76  |  * @param {import("@playwright/test").Page} page
-  77  |  * @param {string} uri Chemin de l'API, sans « api/ » ("produits?page=1").
-  78  |  * @param {{method?: string, body?: unknown}} [options]
-  79  |  * @returns {Promise<{statut: number, donnees: any}>} Statut HTTP et JSON.
-  80  |  */
-  81  | export async function api(page, uri, options = {}) {
-  82  |   const cible = new URL(uri.replace(/^\//, ""), API_URL).toString();
-  83  | 
-  84  |   return page.evaluate(
-  85  |     async ([cible, options]) => {
-  86  |       const reponse = await fetch(cible, {
-  87  |         method: options.method ?? "GET",
-  88  |         headers: { Accept: "application/json", "Content-Type": "application/json" },
-  89  |         body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  90  |         credentials: "same-origin",
-  91  |       });
-  92  | 
-  93  |       let donnees = null;
-  94  |       try {
-  95  |         donnees = await reponse.json();
-  96  |       } catch (e) {
-  97  |         donnees = null;
-  98  |       }
+  8   |  * En tant que visiteur, je veux consulter le catalogue de produits afin de
+  9   |  * découvrir l'offre disponible.
+  10  |  *
+  11  |  * Critères d'acceptation
+  12  |  *  - Je peux voir tous les produits
+  13  |  *  - Chaque produit affiche : nom, prix, image principale
+  14  |  *  - La page se charge en moins de 3 secondes
+  15  |  *
+  16  |  * Definition of Done
+  17  |  *  - Base de données initialisée avec les produits de test (au moins
+  18  |  *    3 catégories de 4 produits)
+  19  |  *
+  20  |  * Chaque test porte le nom de la règle qu'il vérifie : « CA » pour un critère
+  21  |  * d'acceptation, « DoD » pour la définition de Done.
+  22  |  */
+  23  | test.describe("US DEC-b — Catalogue de produits", () => {
+  24  |   test.beforeEach(async ({ page }) => {
+  25  |     await aller(page);
+  26  |     await expect(page.getByRole("heading", { level: 1, name: "Catalogue" })).toBeVisible();
+  27  |   });
+  28  | 
+  29  |   test("CA — Je peux voir tous les produits", async ({ page }) => {
+  30  |     // Référence : ce que l'API compte réellement.
+  31  |     const { statut, donnees } = await api(page, "produits?page=1");
+  32  |     expect(statut).toBe(200);
+  33  | 
+  34  |     const total = donnees.total;
+  35  |     const parPage = donnees.parPage;
+  36  |     expect(total).toBeGreaterThan(0);
+  37  | 
+  38  |     // La première page affiche une page complète de produits.
+  39  |     await expect(cartes(page)).toHaveCount(Math.min(total, parPage));
+  40  | 
+  41  |     // On parcourt toutes les pages du catalogue : chaque produit doit être
+  42  |     // rencontré une fois, et une seule.
+  43  |     let vus = 0;
+  44  |     let pageCourante = 1;
+  45  | 
+  46  |     for (; pageCourante <= 20; pageCourante++) {
+  47  |       await expect(page.getByText(new RegExp(`^Page ${pageCourante} sur `))).toBeVisible();
+  48  |       vus += await cartes(page).count();
+  49  | 
+  50  |       const suivant = page.locator('[data-action="suivante"]');
+  51  |       if (await suivant.isDisabled()) break;
+  52  |       await suivant.click();
+  53  |     }
+  54  | 
+  55  |     expect(vus).toBe(total);
+  56  |   });
+  57  | 
+  58  |   test("CA — Chaque produit affiche nom, prix et image principale", async ({ page }) => {
+  59  |     const nb = await cartes(page).count();
+  60  |     expect(nb).toBeGreaterThan(0);
+  61  | 
+  62  |     for (let i = 0; i < nb; i++) {
+  63  |       const carte = cartes(page).nth(i);
+  64  | 
+  65  |       // Nom : un titre, non vide.
+  66  |       const nom = (await carte.locator("h2").innerText()).trim();
+  67  |       expect(nom.length).toBeGreaterThan(0);
+  68  | 
+  69  |       // Prix : un montant en euros, bien mis en forme.
+  70  |       const prix = carte.getByText(PRIX);
+  71  |       await expect(prix).toHaveCount(1);
+  72  |       await expect(prix).toBeVisible();
+  73  | 
+  74  |       // Image principale : présente, et réellement chargée (et non un lien
+  75  |       // cassé que le navigateur afficherait quand même).
+  76  |       const image = carte.locator("img").first();
+> 77  |       await expect(image).toHaveAttribute("src", /\S+/);
+      |                           ^ Error: expect(locator).toHaveAttribute(expected) failed
+  78  |       await attendreImage(image);
+  79  |     }
+  80  |   });
+  81  | 
+  82  |   test("CA — La page se charge en moins de 3 secondes", async ({ page, context }) => {
+  83  |     // La première visite sert à amorcer le serveur de développement (Vite
+  84  |     // optimise ses dépendances) et à remplir le cache du navigateur : on
+  85  |     // mesure la visite suivante, celle d'un visiteur qui revient.
+  86  |     await page.goto(url());
+  87  | 
+  88  |     const pageMesure = await context.newPage();
+  89  |     const debut = Date.now();
+  90  | 
+  91  |     await pageMesure.goto(url());
+  92  |     await expect(pageMesure.locator("main article").first()).toBeVisible();
+  93  | 
+  94  |     const duree = Date.now() - debut;
+  95  |     await pageMesure.close();
+  96  | 
+  97  |     expect(duree).toBeLessThan(3000);
+  98  |   });
   99  | 
-  100 |       return { statut: reponse.status, donnees };
-  101 |     },
-  102 |     [cible, options]
-  103 |   );
-  104 | }
-  105 | 
-  106 | /**
-  107 |  * Connecte un compte par l'API, depuis la page.
-  108 |  *
-  109 |  * Le cookie de session est alors disponible pour les appels suivants.
-  110 |  *
-  111 |  * @param {import("@playwright/test").Page} page
-  112 |  * @param {string} login
-  113 |  * @param {string} mdp
-  114 |  */
-  115 | export async function connecter(page, login, mdp) {
-  116 |   return api(page, "login", { method: "POST", body: { login, mdp } });
-  117 | }
-  118 | 
-  119 | /**
-  120 |  * Déconnecte le visiteur courant.
-  121 |  *
-  122 |  * @param {import("@playwright/test").Page} page
-  123 |  */
-  124 | export async function deconnecter(page) {
-  125 |   return api(page, "logout", { method: "POST" });
-  126 | }
-  127 | 
-  128 | /**
-  129 |  * Attend qu'une image soit réellement chargée (et pas seulement présente dans
-  130 |  * le code source).
-  131 |  *
-  132 |  * @param {import("@playwright/test").Locator} image
-  133 |  */
-  134 | export async function attendreImage(image) {
-  135 |   await image.scrollIntoViewIfNeeded();
-  136 |   await expect
-  137 |     .poll(async () => image.evaluate((element) => element.complete && element.naturalWidth > 0), {
-  138 |       timeout: 10000,
-  139 |     })
-  140 |     .toBe(true);
-  141 | }
-  142 | 
-  143 | /**
-  144 |  * Le prix affiché par l'application : un nombre, une virgule décimale et
-  145 |  * l'euro ("9,95 €").
-  146 |  *
-  147 |  * Le motif n'est pas ancré : le texte d'un élément contient les espaces et les
-  148 |  * retours à la ligne du template, et le navigateur ne les normalise que pour
-  149 |  * une comparaison mot à mot.
+  100 |   test("DoD — La base contient au moins 3 catégories de 4 produits", async ({ page }) => {
+  101 |     const { statut, donnees } = await api(page, "categories");
+  102 |     expect(statut).toBe(200);
+  103 | 
+  104 |     const categories = donnees.categories;
+  105 |     expect(categories.length).toBeGreaterThanOrEqual(3);
+  106 | 
+  107 |     // Au moins trois catégories doivent compter au moins quatre produits.
+  108 |     const categoriesPeuplees = categories.filter((/** @type {any} */ c) => c.nb_produits >= 4);
+  109 |     expect(categoriesPeuplees.length).toBeGreaterThanOrEqual(3);
+  110 | 
+  111 |     // Et ces produits sont bien visibles dans le catalogue.
+  112 |     for (const categorie of categoriesPeuplees) {
+  113 |       const produits = await api(page, `produits?page=1&categorie=${categorie.slug}`);
+  114 |       expect(produits.statut).toBe(200);
+  115 |       expect(produits.donnees.total).toBeGreaterThanOrEqual(4);
+  116 |     }
+  117 |   });
+  118 | });
+  119 | 
 ```

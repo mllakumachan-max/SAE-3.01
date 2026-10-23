@@ -40,9 +40,6 @@ let PanierView = {
               actions.surQuantite?.(id, q);
             },
             surSupprimer: (id) => {
-              articles.splice(articles.indexOf(a), 1);
-              remplir(liste);
-              majTotal();
               actions.surSupprimer?.(id);
             },
           })
@@ -50,9 +47,11 @@ let PanierView = {
       });
     };
 
+    let zoneTotal = fragment.querySelector('[data-zone="total"]');
     let majTotal = () => {
-      fragment.querySelector('[data-zone="total"]').textContent =
-        PanierView.total(articles).toFixed(2).replace(".", ",") + " €";
+      if (zoneTotal) {
+        zoneTotal.textContent = PanierView.total(articles).toFixed(2).replace(".", ",") + " €";
+      }
       btnValider.disabled = articles.length === 0;
       vide.classList.toggle("hidden", articles.length > 0);
     };

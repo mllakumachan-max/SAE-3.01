@@ -88,9 +88,11 @@ C.handler_surQuantite = async function (id, quantite) {
 };
 
 C.handler_surSupprimer = async function (id) {
+  const nom = M.panier.find((ligne) => String(ligne.id) === String(id))?.nom;
   retirerDuPanier(id);
   await C.charger();
   majCompteurPanier();
+  M.message = { type: "succes", texte: `Le produit "${nom}" a bien été supprimé du panier.` };
   V.rafraichir();
 };
 
@@ -158,7 +160,7 @@ C.handler_surValider = async function () {
 };
 
 C.handler_surContinuer = function () {
-  window.location.href = "/";
+  window.location.href = import.meta.env.BASE_URL;
 };
 
 C.init = async function () {
