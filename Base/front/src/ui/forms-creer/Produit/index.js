@@ -276,6 +276,16 @@ let ProduitFormView = {
         options.surSupprimerValeur?.(Number(bloc.dataset.valeurId));
       });
 
+      let sauverValeur = () => options.surModifierValeur?.(
+        Number(bloc.dataset.valeurId),
+        lireChamp(bloc, "valeurValeur"),
+        lireChamp(bloc, "valeurPrix"),
+        Number(lireChamp(bloc, "valeurOrdre") || 1)
+      );
+      inputValeur.addEventListener("change", sauverValeur);
+      inputPrix.addEventListener("change", sauverValeur);
+      inputOrdre.addEventListener("change", sauverValeur);
+
       bloc.append(inputValeur, inputPrix, inputOrdre, btnEnregistrer, btnSupprimer);
       return bloc;
     };
@@ -323,6 +333,14 @@ let ProduitFormView = {
       btnSupprimerOption.addEventListener("click", () => {
         options.surSupprimerOption?.(Number(bloc.dataset.optionId));
       });
+
+      let sauverOption = () => options.surModifierOption?.(
+        Number(bloc.dataset.optionId),
+        lireChamp(bloc, "optionNom"),
+        Number(lireChamp(bloc, "optionOrdre") || 1)
+      );
+      inputNom.addEventListener("change", sauverOption);
+      inputOrdre.addEventListener("change", sauverOption);
 
       entete.append(inputNom, inputOrdre, btnEnregistrerOption, btnSupprimerOption);
 
@@ -386,11 +404,26 @@ let ProduitFormView = {
 
     afficherOptions();
 
-    // Ajout d'une option (nouveau bloc en haut du formulaire).
+    // Case « Activer les options » : affichage seulement, les options existantes ne sont pas supprimées.
+    let caseActiver = fragment.querySelector('[data-zone="options-activer"]');
+    let contenuOptions = fragment.querySelector('[data-zone="options-contenu"]');
+    caseActiver.checked = edition.optionsActives !== false;
+    contenuOptions.hidden = !caseActiver.checked;
+    caseActiver.addEventListener("change", () => {
+      contenuOptions.hidden = !caseActiver.checked;
+      options.surBasculerOptions?.(caseActiver.checked);
+    });
+
+    // Création d'une option avec ses valeurs, saisies sous la forme « S, M, L ».
     fragment.querySelector('[data-action="ajouter-option"]').addEventListener("click", () => {
-      let nomInput = fragment.querySelector('[name="nouvelleOptionNom"]');
-      let ordreInput = fragment.querySelector('[name="nouvelleOptionOrdre"]');
-      options.surAjouterOption?.(nomInput ? nomInput.value : "", Number(ordreInput ? ordreInput.value : 1) || 1);
+      let nom = fragment.querySelector('[name="nouvelleOptionNom"]');
+      let valeurs = fragment.querySelector('[name="nouvelleOptionValeurs"]');
+      options.surAjouterOption?.(nom.value, valeurs.value);
+    });
+
+    // Chaque frappe est remontée à la page (enregistrement automatique).
+    formulaire.addEventListener("input", () => {
+      options.surModification?.(ProduitFormView.lireSaisie(formulaire, fichiersSelectionnes));
     });
 
     formulaire.addEventListener("submit", (ev) => {

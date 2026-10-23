@@ -3,9 +3,9 @@ import template from "./template.html?raw";
 
 /**
  * Galerie d'images d'un produit : image principale, flèches et miniatures.
- * images : [{ src, alt, ordre }]
+ * images : [{ chemin, src, alt, ordre }]
  *
- * options.activeOrdre : ordre de l'image à afficher en principal (optionnel).
+ * options.activeChemin : chemin de l'image à afficher en principal (optionnel).
  *   Quand il correspond à une image, celle-ci est affichée et sa miniature
  *   est mise en avant. Sinon, la première image est affichée.
  */
@@ -15,8 +15,8 @@ let GalerieImagesView = {
   },
 
   /**
-   * @param {Array<{src: string, alt?: string, ordre: number}>} images
-   * @param {{activeOrdre?: number|null}} options
+   * @param {Array<{chemin?: string, src: string, alt?: string, ordre: number}>} images
+   * @param {{activeChemin?: string|null}} options
    * @returns {DocumentFragment}
    */
   dom: function (images = [], options = {}) {
@@ -27,7 +27,7 @@ let GalerieImagesView = {
     let btnSuiv = fragment.querySelector('[data-action="suivant"]');
     let index = 0;
     let miniatures = [];
-    let activeOrdre = options.activeOrdre ?? null;
+    let activeChemin = options.activeChemin ?? null;
 
     let zoneIndex = fragment.querySelector('[data-zone="index-image"]');
     let zoneTotal = fragment.querySelector('[data-zone="total-images"]');
@@ -41,11 +41,11 @@ let GalerieImagesView = {
       if (btnSuiv) btnSuiv.hidden = true;
     }
 
-    // Indice de l'image à afficher : celle dont l'ordre correspond à
-    // activeOrdre, sinon la première.
+    // Indice de l'image à afficher : celle dont le chemin correspond à
+    // activeChemin, sinon la première.
     let indiceActif = function () {
-      if (activeOrdre !== null) {
-        const trouve = images.findIndex((img) => img.ordre === activeOrdre);
+      if (activeChemin !== null) {
+        const trouve = images.findIndex((img) => img.chemin === activeChemin);
         if (trouve !== -1) {
           return trouve;
         }

@@ -20,6 +20,9 @@ import template from "./template.html?raw";
  */
 
 const IMAGE_OCTETS_MAX = 5 * 1024 * 1024;
+/** Délai avant l'enregistrement automatique, après la dernière frappe. */
+const DELAI_AUTO_MS = 800;
+let minuteurAuto = null;
 
 let M = {
   acces: null, // null (inconnu), "ok", "non-connecte" ou "refuse"
@@ -184,24 +187,59 @@ C.handler_ouvrirModification = async function (id) {
 };
 
 C.handler_annulerFormulaire = function () {
+  clearTimeout(minuteurAuto);
   M.edition = null;
   V.rafraichir();
 };
 
 /**
- * Enregistre le produit, puis ajoute l'image choisie. Si l'image échoue, le
- * produit est déjà enregistré : le formulaire reste ouvert en modification.
+ * Affiche un message sans reconstruire la page : le formulaire et tout ce qui
+ * a été saisi restent en place.
+ */
+C.signaler = function (message) {
+  M.message = message;
+  const zone = V.racine?.querySelector('[data-zone="message-page"]');
+  if (zone) zone.replaceChildren(MessageView.dom(message));
+};
+
+/**
+ * À chaque modification de la saisie : on garde les valeurs dans M, puis on
+ * programme un enregistrement automatique (en modification uniquement).
+ */
+C.handler_modifierSaisie = function (valeurs) {
+  if (!M.edition) return;
+  M.edition = { ...M.edition, valeurs };
+  if (M.edition.id === null) return; // création : rien n'est envoyé avant « Enregistrer »
+  clearTimeout(minuteurAuto);
+  minuteurAuto = setTimeout(C.enregistrerAuto, DELAI_AUTO_MS);
+};
+
+/** Enregistre les champs du produit en arrière-plan. Une saisie incomplète attend. */
+C.enregistrerAuto = async function () {
+  const id = M.edition?.id;
+  const valeurs = M.edition?.valeurs;
+  if (!id || ProduitFormView.valider(valeurs)) return;
+
+  try {
+    await ProduitData.modifier(id, C.versApi(valeurs));
+    C.signaler({ type: "info", texte: "Modifications enregistrées automatiquement." });
+  } catch (erreur) {
+    C.signaler({ type: "erreur", texte: erreur.message });
+  }
+};
+
+/**
+ * Enregistre le produit complet, puis ajoute les nouvelles images.
+ * En cas d'erreur, seul le message change : la saisie reste à l'écran.
  */
 C.handler_enregistrer = async function (valeurs) {
+  clearTimeout(minuteurAuto);
   M.edition = { ...M.edition, valeurs };
 
   const erreurSaisie = ProduitFormView.valider(valeurs);
-  if (erreurSaisie) {
-    M.message = { type: "erreur", texte: erreurSaisie };
-    V.rafraichir();
-    return;
-  }
+  if (erreurSaisie) return C.signaler({ type: "erreur", texte: erreurSaisie });
 
+  let produitSauve = false;
   try {
     const donnees = C.versApi(valeurs);
     const produit =
@@ -209,8 +247,8 @@ C.handler_enregistrer = async function (valeurs) {
         ? await ProduitData.creer(donnees)
         : await ProduitData.modifier(M.edition.id, donnees);
 
-    // Le produit existe désormais : une nouvelle soumission le modifiera.
     M.edition = { ...M.edition, id: produit.id };
+    produitSauve = true;
 
     if (Array.isArray(valeurs.images)) {
       for (const fichier of valeurs.images) {
@@ -224,20 +262,20 @@ C.handler_enregistrer = async function (valeurs) {
       }
     }
 
-    M.message = { type: "succes", texte: `Produit « ${produit.nom} » enregistré.` };
     M.edition = null;
     await C.chargerProduits();
+    M.message = { type: "succes", texte: `Produit « ${produit.nom} » enregistré.` };
+    V.rafraichir(); // ferme le formulaire
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
-    if (M.edition?.id) {
-      // Le produit est enregistré : on recharge ses images pour rester exact.
-      await C.chargerProduits().catch(() => {});
-      const produit = C.trouverProduit(M.edition.id);
-      if (produit) M.edition = { ...M.edition, images: produit.images };
-    }
-  }
+    if (!produitSauve) return C.signaler({ type: "erreur", texte: erreur.message });
 
-  V.rafraichir();
+    // Le produit est enregistré mais une image a échoué : on recharge les images.
+    await C.chargerProduits().catch(() => {});
+    const produit = C.trouverProduit(M.edition.id);
+    M.edition = { ...M.edition, images: produit ? produit.images : M.edition.images };
+    M.message = { type: "erreur", texte: erreur.message };
+    V.rafraichir();
+  }
 };
 
 /** Supprime une image. Le formulaire reste ouvert avec la saisie en cours. */
@@ -257,16 +295,40 @@ C.handler_supprimerImage = async function (imageId, valeursCourantes) {
   V.rafraichir();
 };
 
-/** Crée une option pour le produit en cours d'édition. */
-C.handler_ajouterOption = async function (nom, ordre) {
+/** Affiche ou masque la zone des options, sans rien supprimer. */
+C.handler_basculerOptions = function (actif) {
+  if (!M.edition) return;
+  M.edition = { ...M.edition, optionsActives: actif };
+};
+
+/**
+ * Crée une option et ses valeurs (« S, M, L ») pour le produit en cours.
+ * En cas d'erreur, seul le message change : les champs gardent leur saisie.
+ */
+C.handler_ajouterOption = async function (nomSaisi, valeursSaisies) {
   if (!M.edition?.id) return;
+
+  const nom = nomSaisi.trim();
+  const valeurs = valeursSaisies.split(",").map((v) => v.trim()).filter((v) => v !== "");
+  if (nom === "") return C.signaler({ type: "erreur", texte: "Donnez un nom à l'option, par exemple Taille." });
+  if (valeurs.length === 0) return C.signaler({ type: "erreur", texte: "Indiquez au moins une valeur, séparées par des virgules." });
+
   try {
-    M.edition.options = await ProduitData.creerOption(M.edition.id, { nom, ordre });
-    M.message = null;
+    const idsAvant = new Set(M.edition.options.map((o) => o.id));
+    let options = await ProduitData.creerOption(M.edition.id, { nom, ordre: M.edition.options.length + 1 });
+    const nouvelle = options.find((o) => !idsAvant.has(o.id));
+
+    for (const [index, valeur] of valeurs.entries()) {
+      options = await ProduitData.ajouterValeur(nouvelle.id, { valeur, prix_supplement: 0, ordre: index + 1 });
+    }
+
+    M.edition = { ...M.edition, options };
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
+    return C.signaler({ type: "erreur", texte: erreur.message });
   }
-  V.rafraichir();
+
+  M.message = null;
+  V.rafraichir(); // le formulaire repart vide, la nouvelle option apparaît dans la liste
 };
 
 /** Ajoute une valeur à une option du produit en cours d'édition. */
@@ -280,7 +342,7 @@ C.handler_ajouterValeur = async function (optionId, valeur, prixSupplement, ordr
     });
     M.message = null;
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
+    return C.signaler({ type: "erreur", texte: erreur.message });
   }
   V.rafraichir();
 };
@@ -292,7 +354,7 @@ C.handler_modifierOption = async function (id, nom, ordre) {
     M.edition.options = await ProduitData.modifierOption(id, { nom, ordre });
     M.message = null;
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
+    return C.signaler({ type: "erreur", texte: erreur.message });
   }
   V.rafraichir();
 };
@@ -304,7 +366,7 @@ C.handler_supprimerOption = async function (id) {
     M.edition.options = await ProduitData.supprimerOption(id);
     M.message = null;
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
+    return C.signaler({ type: "erreur", texte: erreur.message });
   }
   V.rafraichir();
 };
@@ -320,7 +382,7 @@ C.handler_modifierValeur = async function (id, valeur, prixSupplement, ordre) {
     });
     M.message = null;
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
+    return C.signaler({ type: "erreur", texte: erreur.message });
   }
   V.rafraichir();
 };
@@ -332,7 +394,7 @@ C.handler_supprimerValeur = async function (id) {
     M.edition.options = await ProduitData.supprimerValeur(id);
     M.message = null;
   } catch (erreur) {
-    M.message = { type: "erreur", texte: erreur.message };
+    return C.signaler({ type: "erreur", texte: erreur.message });
   }
   V.rafraichir();
 };
@@ -435,9 +497,11 @@ V.createPageFragment = function () {
       ? ProduitFormView.dom(M.edition, {
           categories: M.categories,
           surEnregistrer: C.handler_enregistrer,
+          surModification: C.handler_modifierSaisie,
           surAnnuler: C.handler_annulerFormulaire,
           surSupprimerImage: C.handler_supprimerImage,
           surAjouterOption: C.handler_ajouterOption,
+          surBasculerOptions: C.handler_basculerOptions,
           surAjouterValeur: C.handler_ajouterValeur,
           surModifierOption: C.handler_modifierOption,
           surSupprimerOption: C.handler_supprimerOption,

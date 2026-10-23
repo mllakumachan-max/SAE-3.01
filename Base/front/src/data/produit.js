@@ -1,4 +1,3 @@
-
 import { deleteRequest, getRequest, postRequest, putRequest } from "../lib/api-request.js";
 import { urlImage } from "../lib/images.js";
 
@@ -41,6 +40,7 @@ let mettreEnForme = function (produit) {
  */
 let mettreImageEnForme = function (image) {
   return {
+    chemin: image.chemin,
     src: urlImage(image.chemin),
     alt: image.texte_alternatif ?? "",
     ordre: Number(image.ordre ?? 0),

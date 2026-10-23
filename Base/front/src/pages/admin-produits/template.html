@@ -9,7 +9,9 @@
         <a href="/admin" data-link class="font-medium text-blue-600 underline hover:text-blue-700 dark:text-blue-400">Se connecter</a>.
     </p>
 
-    <slot name="message"></slot>
+    <div data-zone="message-page">
+        <slot name="message"></slot>
+    </div>
     <slot name="formulaire"></slot>
     <slot name="suppression"></slot>
     <slot name="barre-outils"></slot>

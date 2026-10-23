@@ -55,24 +55,43 @@ C.charger = async function (slug) {
 };
 
 /**
- * L'ordre de la galerie à afficher en principal, déduit de l'option
- * sélectionnée. La valeur choisie d'une option porte un ordre ; si une image
- * de la galerie porte le même ordre, c'est elle qui est montrée.
- * (Ex: option « Couleur », valeur « Blanc » d'ordre 1 → image d'ordre 1.)
- *
- * @returns {number|null}
+ * Découpe un texte en mots, sans accents ni majuscules :
+ * « Bleu Clair » → ["bleu", "clair"].
  */
-C.ordreImageActive = function () {
+C.mots = function (texte) {
+  return texte
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((mot) => mot !== "");
+};
+
+/**
+ * Chemin de l'image à afficher en principal, déduit de la valeur choisie.
+ * Une image correspond si tous les mots de la valeur figurent dans son nom de
+ * fichier : valeur « Blanc » → « habitat/image-blanc.avif ».
+ *
+ * @returns {string|null}
+ */
+C.cheminImageActive = function () {
   if (M.produit === null) return null;
 
   for (const option of M.options) {
     const valeurChoisie = M.selection[option.nom];
     if (valeurChoisie === undefined) continue;
 
-    const valeur = (option.valeurs || []).find((v) => v.valeur === valeurChoisie);
-    if (valeur && M.galerie.some((img) => img.ordre === valeur.ordre)) {
-      return valeur.ordre;
-    }
+    const motsValeur = C.mots(valeurChoisie);
+    if (motsValeur.length === 0) continue;
+
+    const image = M.galerie.find((img) => {
+      const nomFichier = (img.chemin ?? "").split("/").pop().replace(/\.[^.]+$/, "");
+      const motsImage = C.mots(nomFichier);
+      // Préfixe : « vert » trouve « verte », « blanc » trouve « blanche ».
+      return motsValeur.every((mot) => motsImage.some((m) => m.startsWith(mot)));
+    });
+
+    if (image) return image.chemin;
   }
 
   return null;
@@ -93,7 +112,7 @@ C.produitAffichage = function () {
     options: M.options,
     selection: M.selection,
     quantite: M.quantite,
-    activeOrdre: C.ordreImageActive(),
+    activeChemin: C.cheminImageActive(),
     prixBase: Number(M.produit.prix || 0),
     prixActuel: C.prixActuel(),
     lienCatalogue: "/",

@@ -99,7 +99,7 @@ let DetailProduitView = {
     let slotGalerie = fragment.querySelector('slot[name="galerie"]');
     if (slotGalerie) {
       slotGalerie.replaceWith(
-        GalerieImagesView.dom(produit.images ?? [], { activeOrdre: produit.activeOrdre })
+        GalerieImagesView.dom(produit.images ?? [], { activeChemin: produit.activeChemin })
       );
     }
 
