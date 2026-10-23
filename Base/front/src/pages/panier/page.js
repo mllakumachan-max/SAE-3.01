@@ -10,6 +10,9 @@ import {
 } from "../../lib/panier.js";
 import { PanierView } from "../../ui/tableaux-recapitulatifs/Client/panier/index.js";
 import { MessageView } from "../../ui/message/index.js";
+import { FormulaireConnexionClientView } from "../../ui/modales/Client/connexionClient/index.js";
+import { FormulaireInscriptionClientView } from "../../ui/modales/Client/inscriptionClient/index.js";
+import { AuthData } from "../../data/auth.js";
 import template from "./template.html?raw";
 
 /**
@@ -22,6 +25,9 @@ import template from "./template.html?raw";
 let M = {
   panier: [], // articles du panier
   message: null, // { type, texte }, ou null
+  afficherConnexion: false,
+  afficherInscription: false,
+  login: "",
 };
 
 let C = {};
@@ -96,7 +102,60 @@ C.handler_surSupprimer = async function (id) {
   V.rafraichir();
 };
 
-C.handler_surValider = async function () {
+C.handler_surValider = function () {
+  if (M.panier.length === 0) return;
+  M.afficherConnexion = true;
+  V.rafraichir();
+};
+
+C.handler_connexion = async function (login, mdp) {
+  M.login = login;
+  try {
+    await AuthData.login(login, mdp);
+    M.afficherConnexion = false;
+    await C.validerCommande();
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+    V.rafraichir();
+  }
+};
+
+C.handler_fermerConnexion = function () {
+  M.afficherConnexion = false;
+  V.rafraichir();
+};
+
+C.handler_basculerInscription = function () {
+  M.afficherConnexion = false;
+  M.afficherInscription = true;
+  V.rafraichir();
+};
+
+C.handler_fermerInscription = function () {
+  M.afficherInscription = false;
+  V.rafraichir();
+};
+
+C.handler_basculerConnexion = function () {
+  M.afficherInscription = false;
+  M.afficherConnexion = true;
+  V.rafraichir();
+};
+
+C.handler_inscription = async function (login, mdp, mdpConfirmation) {
+  M.login = login;
+  try {
+    await AuthData.register(login, mdp, mdpConfirmation);
+    M.afficherInscription = false;
+    await AuthData.login(login, mdp);
+    await C.validerCommande();
+  } catch (erreur) {
+    M.message = { type: "erreur", texte: erreur.message };
+    V.rafraichir();
+  }
+};
+
+C.validerCommande = async function () {
   if (M.panier.length === 0) return;
 
   // Vérification côté serveur avant la validation de la commande.
@@ -198,6 +257,34 @@ V.createPageFragment = function () {
   );
 
   pageFragment.querySelector('slot[name="message"]').replaceWith(MessageView.dom(M.message));
+
+  const racine = pageFragment.firstElementChild;
+
+  if (M.afficherConnexion) {
+    racine.appendChild(
+      FormulaireConnexionClientView.dom(
+        { login: M.login },
+        {
+          surConnexion: C.handler_connexion,
+          surFermer: C.handler_fermerConnexion,
+          surBasculerInscription: C.handler_basculerInscription,
+        }
+      )
+    );
+  }
+
+  if (M.afficherInscription) {
+    racine.appendChild(
+      FormulaireInscriptionClientView.dom(
+        { login: M.login },
+        {
+          surInscription: C.handler_inscription,
+          surFermer: C.handler_fermerInscription,
+          surBasculerConnexion: C.handler_basculerConnexion,
+        }
+      )
+    );
+  }
 
   return pageFragment;
 };

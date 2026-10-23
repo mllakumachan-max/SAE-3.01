@@ -36,6 +36,7 @@ return [
 
     // POST
     'POST /api/login'                       => [AuthController::class,      'login'],
+    'POST /api/register'                    => [AuthController::class,      'register'],
     'POST /api/logout'                      => [AuthController::class,      'logout'],
     'POST /api/panier/verifier-stock'       => [PanierController::class,    'verifierStock'],
     'POST /api/admin/categories'            => [CategorieAdminController::class,     'creer'],

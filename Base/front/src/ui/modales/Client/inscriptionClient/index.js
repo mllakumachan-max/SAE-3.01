@@ -42,19 +42,24 @@ let FormulaireInscriptionClientView = {
       });
     }
 
-    let btnFermer = fragment.querySelector('[data-action="fermer"]');
-    if (btnFermer && actions.surFermer) {
-      btnFermer.addEventListener("click", () => actions.surFermer());
-    }
+    fragment.querySelectorAll('[data-action="fermer"]').forEach((btnFermer) => {
+      if (btnFermer && actions.surFermer) {
+        btnFermer.addEventListener("click", () => actions.surFermer());
+      }
+    });
 
     let btnConnexion = fragment.querySelector('[data-action="basculer-connexion"]');
     if (btnConnexion && actions.surBasculerConnexion) {
       btnConnexion.addEventListener("click", () => actions.surBasculerConnexion());
     }
 
-    let btnRetourPanier = fragment.querySelector('[data-action="retour-panier"]');
-    if (btnRetourPanier && actions.surRetourPanier) {
-      btnRetourPanier.addEventListener("click", () => actions.surRetourPanier());
+    let overlay = fragment.querySelector('[data-zone="overlay"]');
+    if (overlay && actions.surFermer) {
+      overlay.addEventListener("click", (ev) => {
+        if (ev.target === overlay) {
+          actions.surFermer();
+        }
+      });
     }
 
     return fragment;

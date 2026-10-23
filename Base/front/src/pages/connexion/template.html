@@ -1,0 +1,67 @@
+<section class="mx-auto max-w-3xl px-6 pt-10 pb-16 gap-2">
+  <slot name="message"></slot>
+
+  <div class="mx-auto max-w-lg rounded-lg border bg-surface-default p-6 shadow-xs border-border-default">
+    <h2 data-zone="titre" class="mb-2 text-24 font-semibold tracking-tight text-text-primary">Connexion client</h2>
+    <p class="mb-6 text-14 text-text-secondary">Connectez-vous à votre compte pour finaliser votre commande.</p>
+
+    <form name="connexion" class="flex flex-col gap-4" novalidate>
+      <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+        Adresse email
+        <input name="login" type="email" autocomplete="username" required placeholder="votre.email@exemple.fr" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
+      </label>
+
+      <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+        Mot de passe
+        <input name="mdp" type="password" autocomplete="current-password" required placeholder="••••••••" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
+      </label>
+
+      <button type="submit" class="mt-2 h-10 w-full rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text transition-opacity hover:opacity-90">
+        Me connecter
+      </button>
+
+      <div class="mt-3 flex flex-col items-center gap-2 border-t pt-4 text-14 text-text-secondary border-border-default">
+        <p>
+          Pas encore de compte ?
+          <button type="button" data-action="basculer-inscription" class="font-medium text-text-link underline hover:text-text-link">
+            Créer un compte
+          </button>
+        </p>
+      </div>
+    </form>
+
+    <form name="inscription" class="flex flex-col gap-4" novalidate hidden>
+      <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+        Adresse email
+        <input name="login" type="email" autocomplete="username" required placeholder="votre.email@exemple.fr" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
+      </label>
+
+      <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+        Mot de passe
+        <input name="mdp" type="password" autocomplete="new-password" required placeholder="8 caractères minimum" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
+      </label>
+
+      <label class="flex flex-col gap-1.5 text-14 font-medium text-text-primary">
+        Confirmer le mot de passe
+        <input name="mdp_confirmation" type="password" autocomplete="new-password" required placeholder="Confirmez votre mot de passe" class="h-10 rounded-md border bg-surface-default px-3 text-14 font-normal text-text-primary transition-colors hover:border-border-default focus:border-border-default focus:outline-hidden border-border-default" />
+      </label>
+
+      <p class="text-12 text-text-secondary">
+        Tous les champs sont obligatoires. Le mot de passe doit comporter au moins 8 caractères.
+      </p>
+
+      <button type="submit" class="mt-2 h-10 w-full rounded-md bg-action-primary-background px-4 text-14 font-medium text-action-primary-text transition-opacity hover:opacity-90">
+        Créer mon compte
+      </button>
+
+      <div class="mt-3 flex flex-col items-center gap-2 border-t pt-4 text-14 text-text-secondary border-border-default">
+        <p>
+          Déjà un compte ?
+          <button type="button" data-action="basculer-connexion" class="font-medium text-text-link underline hover:text-text-link">
+            Me connecter
+          </button>
+        </p>
+      </div>
+    </form>
+  </div>
+</section>

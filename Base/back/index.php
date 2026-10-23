@@ -28,6 +28,7 @@ use App\Controller\StatsController;
 
 use App\Model\CategorieModel;
 use App\Model\ProduitModel;
+use App\Model\UtilisateurModel;
 
 // --- Chargement automatique des classes ------------------------------------
 // App\Core\Router  ->  back/src/Core/Router.php
@@ -77,7 +78,7 @@ try {
         CategorieAdminController::class => new CategorieAdminController(new CategorieModel($pdo)),
         ProduitController::class        => new ProduitController(new ProduitModel($pdo)),
         PanierController::class         => new PanierController(new ProduitModel($pdo)),
-        AuthController::class           => new AuthController(),
+        AuthController::class           => new AuthController(new UtilisateurModel($pdo)),
         ProduitAdminController::class   => new ProduitAdminController(new ProduitModel($pdo), new CategorieModel($pdo)),
         StatsController::class          => new StatsController(new ProduitModel($pdo)),
     ];
