@@ -27,7 +27,11 @@ export function RootLayout(path = "/") {
         adminConnecte: estAdminConnecte(),
         surDeconnexion: () => document.dispatchEvent(new Event("admin:deconnexion")),
       }
-    : {};
+    : {
+        surRecherche: (terme) => {
+          document.dispatchEvent(new CustomEvent("catalogue:recherche", { detail: { terme } }));
+        },
+      };
 
   const data = estAdmin ? {} : { nbArticles: nombreArticles() };
 

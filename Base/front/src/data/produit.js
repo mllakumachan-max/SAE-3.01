@@ -56,11 +56,15 @@ let mettreImageEnForme = function (image) {
  * La réponse contient les produits et les réglages réellement appliqués :
  * { produits, tri, parPage, page, pagesTotal, total }
  */
-ProduitData.fetchPage = async function (page, reglages, categorieSlug = null) {
+ProduitData.fetchPage = async function (page, reglages, categorieSlug = null, recherche = null) {
   let uri = `produits?page=${page}`;
 
   if (categorieSlug !== null && categorieSlug !== undefined && categorieSlug !== "") {
     uri += `&categorie=${encodeURIComponent(categorieSlug)}`;
+  }
+
+  if (recherche !== null && recherche !== undefined && recherche !== "") {
+    uri += `&recherche=${encodeURIComponent(recherche)}`;
   }
 
   if (reglages !== undefined) {

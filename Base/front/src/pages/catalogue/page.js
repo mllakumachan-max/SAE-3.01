@@ -21,6 +21,7 @@ let M = {
   message: null, // { type, texte }, ou null
   categorieSlug: null,
   categorieLibelle: null,
+  termeRecherche: "",
 };
 
 let C = {};
@@ -29,9 +30,9 @@ let C = {};
  * Demande une page du catalogue et range la réponse dans le modèle.
  * reglages ({ tri, parPage }) est facultatif, voir data/produit.js.
  */
-C.charger = async function (page, reglages, categorieSlug = M.categorieSlug) {
+C.charger = async function (page, reglages, categorieSlug = M.categorieSlug, recherche = M.termeRecherche) {
   try {
-    M.catalogue = await ProduitData.fetchPage(page, reglages, categorieSlug);
+    M.catalogue = await ProduitData.fetchPage(page, reglages, categorieSlug, recherche);
     M.message = null;
   } catch (erreur) {
     M.catalogue = null;
@@ -41,17 +42,17 @@ C.charger = async function (page, reglages, categorieSlug = M.categorieSlug) {
 
 // Changer un réglage rend la page courante sans objet : on repart de la première.
 C.handler_changerTri = async function (tri) {
-  await C.charger(1, { tri, parPage: M.catalogue.parPage }, M.categorieSlug);
+  await C.charger(1, { tri, parPage: M.catalogue.parPage }, M.categorieSlug, M.termeRecherche);
   V.rafraichir();
 };
 
 C.handler_changerParPage = async function (parPage) {
-  await C.charger(1, { tri: M.catalogue.tri, parPage }, M.categorieSlug);
+  await C.charger(1, { tri: M.catalogue.tri, parPage }, M.categorieSlug, M.termeRecherche);
   V.rafraichir();
 };
 
 C.handler_changerPage = async function (page) {
-  await C.charger(page, { tri: M.catalogue.tri, parPage: M.catalogue.parPage }, M.categorieSlug);
+  await C.charger(page, { tri: M.catalogue.tri, parPage: M.catalogue.parPage }, M.categorieSlug, M.termeRecherche);
   V.rafraichir();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
@@ -61,10 +62,24 @@ C.handler_ajouterPanier = function (id) {
   if (produit) ajouterAuPanier(produit, 1);
 };
 
+C.handler_rechercher = async function (terme) {
+  M.termeRecherche = (terme || "").trim();
+  await C.charger(1, { tri: M.catalogue?.tri, parPage: M.catalogue?.parPage }, M.categorieSlug, M.termeRecherche);
+  V.rafraichir();
+};
+
 C.init = async function (categorieSlug = null) {
   M.categorieSlug = categorieSlug !== null && categorieSlug !== undefined && categorieSlug !== "" ? categorieSlug : null;
+  M.termeRecherche = "";
 
-  await C.charger(1, undefined, M.categorieSlug);
+  // Écoute l'événement de recherche depuis le header
+  document.removeEventListener("catalogue:recherche", C._onRecherche);
+  C._onRecherche = (e) => {
+    C.handler_rechercher(e.detail?.terme || "");
+  };
+  document.addEventListener("catalogue:recherche", C._onRecherche);
+
+  await C.charger(1, undefined, M.categorieSlug, M.termeRecherche);
   M.categorieLibelle = M.catalogue?.categorie?.libelle ?? M.categorieSlug;
   return V.init();
 };
@@ -87,16 +102,20 @@ V.init = function () {
 V.rafraichir = function () {
   let fragment = V.createPageFragment();
   let nouvelleRacine = fragment.firstElementChild;
-  V.racine.replaceWith(fragment);
+  if (V.racine && V.racine.isConnected) {
+    V.racine.replaceWith(fragment);
+  }
   V.racine = nouvelleRacine;
 };
 
 V.createPageFragment = function () {
   let pageFragment = htmlToFragment(template);
 
-  let elementsAriane = M.categorieSlug === null
+  let elementsAriane = M.categorieSlug === null && !M.termeRecherche
     ? [{ libelle: "Catalogue" }]
-    : [{ libelle: "Catalogue", lien: "/" }, { libelle: M.categorieLibelle }];
+    : M.termeRecherche
+      ? [{ libelle: "Catalogue", lien: "/" }, { libelle: `Recherche : ${M.termeRecherche}` }]
+      : [{ libelle: "Catalogue", lien: "/" }, { libelle: M.categorieLibelle }];
   pageFragment.querySelector('slot[name="ariane"]').replaceWith(FilArianeView.dom(elementsAriane));
   pageFragment.querySelector('slot[name="message"]').replaceWith(MessageView.dom(M.message));
 
