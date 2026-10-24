@@ -91,12 +91,22 @@ final class CatalogueController
             : $this->categories->trouverRacineParSlug($slugCategorie);
         $categorieId = $slugCategorie === null ? null : ($categorie['id'] ?? 0);
 
-        $total       = $this->produits->compter($categorieId);
+        $recherche = $requete->parametre('recherche');
+        if (is_string($recherche)) {
+            $recherche = trim($recherche);
+            if ($recherche === '') {
+                $recherche = null;
+            }
+        } else {
+            $recherche = null;
+        }
+
+        $total       = $this->produits->compter($categorieId, $recherche);
         $pagesTotal  = max(1, (int) ceil($total / $parPage));
         $page        = (int) ($requete->parametre('page', '1') ?? '1');
         $page        = max(1, min($page, $pagesTotal));
 
-        $produits = $this->produits->lister($ordre, $parPage, ($page - 1) * $parPage, $categorieId);
+        $produits = $this->produits->lister($ordre, $parPage, ($page - 1) * $parPage, $categorieId, $recherche);
 
         Response::json([
             'produits' => $produits,

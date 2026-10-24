@@ -23,7 +23,6 @@ class Router {
 
     // Numéro de la dernière navigation demandée (voir handleRoute).
     this.navigation = 0;
-    this.currentPath = null;
 
     // Boutons Précédent / Suivant du navigateur.
     window.addEventListener("popstate", () => this.handleRoute());
@@ -130,12 +129,7 @@ class Router {
   // Afficher la page qui correspond à l'adresse courante
   async handleRoute() {
     const navigation = ++this.navigation;
-    const previousPath = this.currentPath;
     const path = this.routePath(window.location.pathname);
-    this.currentPath = path;
-    if (previousPath && previousPath.startsWith("/admin") && !path.startsWith("/admin")) {
-      document.dispatchEvent(new Event("admin:quitter"));
-    }
 
     const route = this.routes.find((r) => r.regex.test(path));
     if (!route) return;

@@ -35,6 +35,7 @@ export function RootLayout(path = "/") {
 
   const data = estAdmin ? {} : { nbArticles: nombreArticles() };
 
-  layout.querySelector('slot[name="header"]').replaceWith(HeaderView.dom(data, actions));
+  const header = estAdmin ? HeaderAdminView.dom(actions) : HeaderClientView.dom(data, actions);
+  layout.querySelector('slot[name="header"]').replaceWith(header);
   return layout;
 }

@@ -25,16 +25,33 @@ final class ProduitModel
     /**
      * Nombre de produits du catalogue avec un filtre par catégorie.
      */
-    public function compter(?int $categorieId = null): int
+    public function compter(?int $categorieId = null, ?string $recherche = null): int
     {
-        if ($categorieId === null) {
-            return (int) $this->pdo->query('SELECT COUNT(*) FROM PRODUIT')->fetchColumn();
+        $conditions = [];
+        $params = [];
+
+        if ($categorieId !== null) {
+            $conditions[] = 'PRODUIT.categorie_id = :categorie';
+            $params[':categorie'] = ['value' => $categorieId, 'type' => PDO::PARAM_INT];
         }
 
-        $requetePreparee = $this->pdo->prepare(
-            'SELECT COUNT(*) FROM PRODUIT WHERE PRODUIT.categorie_id = :categorie'
-        );
-        $requetePreparee->bindValue(':categorie', $categorieId, PDO::PARAM_INT);
+        if ($recherche !== null && $recherche !== '') {
+            $conditions[] = '(PRODUIT.nom LIKE :recherche1 OR PRODUIT.reference LIKE :recherche2 OR PRODUIT.marque LIKE :recherche3)';
+            $terme = '%' . $recherche . '%';
+            $params[':recherche1'] = ['value' => $terme, 'type' => PDO::PARAM_STR];
+            $params[':recherche2'] = ['value' => $terme, 'type' => PDO::PARAM_STR];
+            $params[':recherche3'] = ['value' => $terme, 'type' => PDO::PARAM_STR];
+        }
+
+        $sql = 'SELECT COUNT(*) FROM PRODUIT';
+        if (!empty($conditions)) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
+        }
+
+        $requetePreparee = $this->pdo->prepare($sql);
+        foreach ($params as $cle => $data) {
+            $requetePreparee->bindValue($cle, $data['value'], $data['type']);
+        }
         $requetePreparee->execute();
 
         return (int) $requetePreparee->fetchColumn();
@@ -51,9 +68,16 @@ final class ProduitModel
      * @param int    $decalage Nombre de produits à sauter (pagination).
      * @param int|null $categorieId Filtre par catégorie, ou null pour tout le catalogue.
      */
-    public function lister(string $ordre, int $limite, int $decalage, ?int $categorieId = null): array
+    public function lister(string $ordre, int $limite, int $decalage, ?int $categorieId = null, ?string $recherche = null): array
     {
-        $filtre = $categorieId === null ? '' : 'WHERE PRODUIT.categorie_id = :categorie';
+        $conditions = [];
+        if ($categorieId !== null) {
+            $conditions[] = 'PRODUIT.categorie_id = :categorie';
+        }
+        if ($recherche !== null && $recherche !== '') {
+            $conditions[] = '(PRODUIT.nom LIKE :recherche1 OR PRODUIT.reference LIKE :recherche2 OR PRODUIT.marque LIKE :recherche3)';
+        }
+        $filtre = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
 
         $sql = "SELECT PRODUIT.id,
                        PRODUIT.reference,
@@ -83,16 +107,20 @@ final class ProduitModel
              )
                                  {$filtre}
               ORDER BY {$ordre}, PRODUIT.id
-                 LIMIT :limite OFFSET :decalage";
+                 LIMIT {$limite} OFFSET {$decalage}";
 
         $requetePreparee = $this->pdo->prepare($sql);
 
         // Les valeurs, elles, sont bien liées : c'est le rôle des paramètres.
-        $requetePreparee->bindValue(':limite',   $limite,   PDO::PARAM_INT);
-        $requetePreparee->bindValue(':decalage', $decalage, PDO::PARAM_INT);
 
         if ($categorieId !== null) {
             $requetePreparee->bindValue(':categorie', $categorieId, PDO::PARAM_INT);
+        }
+        if ($recherche !== null && $recherche !== '') {
+            $terme = '%' . $recherche . '%';
+            $requetePreparee->bindValue(':recherche1', $terme, PDO::PARAM_STR);
+            $requetePreparee->bindValue(':recherche2', $terme, PDO::PARAM_STR);
+            $requetePreparee->bindValue(':recherche3', $terme, PDO::PARAM_STR);
         }
 
         $requetePreparee->execute();

@@ -137,6 +137,32 @@ test.describe("US GOF-b — Back-office", () => {
     }
   });
 
+  test("CA — La session reste active pendant la navigation dans le back-office", async ({ page }) => {
+    await seConnecter(page, COMPTES.admin.login, COMPTES.admin.mdp);
+
+    await page.locator('header nav a[href$="/admin/produits"]').click();
+    await expect(page.getByRole("heading", { name: "Gestion des produits" })).toBeVisible();
+    await expect(page.locator('header nav a[href$="/admin/categories"]')).toBeVisible();
+    await expect(page.locator('[data-action="deconnexion"]')).toBeVisible();
+    expect((await api(page, "admin/stats")).statut).toBe(200);
+
+    await page.locator('header nav a[href$="/admin/categories"]').click();
+    await expect(page.getByRole("heading", { name: "Gestion des catégories" })).toBeVisible();
+    await expect(page.locator('header nav a[href$="/admin/produits"]')).toBeVisible();
+    expect((await api(page, "admin/stats")).statut).toBe(200);
+
+    await page.locator('header nav a[href$="/admin"]').click();
+    await expect(page.getByText("Produits au catalogue", { exact: true })).toBeVisible();
+
+    await page.getByRole("link", { name: "Voir le site" }).click();
+    await expect(page.getByRole("link", { name: "Panier" })).toBeVisible();
+    expect((await api(page, "admin/stats")).statut).toBe(200);
+
+    await aller(page, "admin");
+    await expect(page.getByText("Produits au catalogue", { exact: true })).toBeVisible();
+    await expect(page.locator('[data-action="deconnexion"]')).toBeVisible();
+  });
+
   test("CA — Le design est cohérent avec le front-office mais distinct", async ({ page }) => {
     await aller(page, "admin");
 
