@@ -235,213 +235,187 @@ final class ProduitModel
         );
     }
 
-    /**
-     * Crée une option de personnalisation pour un produit. Renvoie son identifiant.
-     *
-     * @param string $nom    Nom de l'option (ex: « Couleur »).
-     * @param int    $ordre  Ordre d'affichage de l'option.
-     */
-    public function creerOption(int $produitId, string $nom, int $ordre): int
+    // ------------------------------------------------------------------
+    // Options : catalogue commun (types et valeurs) et choix par produit
+    // ------------------------------------------------------------------
+
+    /** Tous les types avec leurs valeurs connues. */
+    public function catalogueOptions(): array
     {
-        $requete = $this->pdo->prepare(
-            'INSERT INTO OPTION_PRODUIT (produit_id, nom, ordre)
-             VALUES (:produit, :nom, :ordre)'
-        );
-        $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
-        $requete->bindValue(':nom', $nom, PDO::PARAM_STR);
-        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
-        $requete->execute();
+        $lignes = $this->pdo->query(
+            'SELECT TYPE_OPTION.id AS type_id, TYPE_OPTION.nom,
+                    VALEUR_OPTION.id AS valeur_id, VALEUR_OPTION.valeur
+               FROM TYPE_OPTION
+          LEFT JOIN VALEUR_OPTION ON VALEUR_OPTION.type_id = TYPE_OPTION.id
+           ORDER BY TYPE_OPTION.nom ASC, VALEUR_OPTION.valeur ASC'
+        )->fetchAll();
 
-        return (int) $this->pdo->lastInsertId();
-    }
-
-    /**
-     * Modifie une option existante (nom et/ou ordre).
-     */
-    public function modifierOption(int $id, string $nom, int $ordre): void
-    {
-        $requete = $this->pdo->prepare(
-            'UPDATE OPTION_PRODUIT SET nom = :nom, ordre = :ordre WHERE id = :id'
-        );
-        $requete->bindValue(':nom', $nom, PDO::PARAM_STR);
-        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
-        $requete->bindValue(':id', $id, PDO::PARAM_INT);
-        $requete->execute();
-    }
-
-    /**
-     * Supprime une option et toutes ses valeurs.
-     */
-    public function supprimerOption(int $id): void
-    {
-        $this->pdo->beginTransaction();
-
-        try {
-            $requete = $this->pdo->prepare('DELETE FROM OPTION_VALEUR WHERE option_id = :option');
-            $requete->bindValue(':option', $id, PDO::PARAM_INT);
-            $requete->execute();
-
-            $requete = $this->pdo->prepare('DELETE FROM OPTION_PRODUIT WHERE id = :id');
-            $requete->bindValue(':id', $id, PDO::PARAM_INT);
-            $requete->execute();
-
-            $this->pdo->commit();
-        } catch (\Throwable $erreur) {
-            $this->pdo->rollBack();
-            throw $erreur;
+        $types = [];
+        foreach ($lignes as $ligne) {
+            $typeId = (int) $ligne['type_id'];
+            if (!isset($types[$typeId])) {
+                $types[$typeId] = ['id' => $typeId, 'nom' => $ligne['nom'], 'valeurs' => []];
+            }
+            if ($ligne['valeur_id'] !== null) {
+                $types[$typeId]['valeurs'][] = ['id' => (int) $ligne['valeur_id'], 'valeur' => $ligne['valeur']];
+            }
         }
+
+        return array_values($types);
     }
 
-    /**
-     * Ajoute une valeur à une option. Renvoie son identifiant.
-     *
-     * @param string $valeur          Libellé de la valeur (ex: « Blanc »).
-     * @param string $prixSupplement  Supplément de prix, format « 2.00 ».
-     * @param int    $ordre           Ordre d'affichage de la valeur.
-     */
-    public function ajouterValeur(int $optionId, string $valeur, string $prixSupplement, int $ordre): int
+    public function typeExiste(int $id): bool
     {
-        $requete = $this->pdo->prepare(
-            'INSERT INTO OPTION_VALEUR (option_id, valeur, prix_supplement, ordre)
-             VALUES (:option, :valeur, :prix, :ordre)'
-        );
-        $requete->bindValue(':option', $optionId, PDO::PARAM_INT);
-        $requete->bindValue(':valeur', $valeur, PDO::PARAM_STR);
-        $requete->bindValue(':prix', $prixSupplement, PDO::PARAM_STR);
-        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
+        $requete = $this->pdo->prepare('SELECT 1 FROM TYPE_OPTION WHERE id = :id');
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+
+        return $requete->fetchColumn() !== false;
+    }
+
+    /** La collation utf8mb4_unicode_ci ignore la casse et les accents : « couleur » = « Couleur ». */
+    public function nomTypeExiste(string $nom): bool
+    {
+        $requete = $this->pdo->prepare('SELECT 1 FROM TYPE_OPTION WHERE nom = :nom');
+        $requete->bindValue(':nom', $nom, PDO::PARAM_STR);
+        $requete->execute();
+
+        return $requete->fetchColumn() !== false;
+    }
+
+    public function creerType(string $nom): int
+    {
+        $requete = $this->pdo->prepare('INSERT INTO TYPE_OPTION (nom) VALUES (:nom)');
+        $requete->bindValue(':nom', $nom, PDO::PARAM_STR);
         $requete->execute();
 
         return (int) $this->pdo->lastInsertId();
     }
 
-    /**
-     * Modifie une valeur d'option existante.
-     */
-    public function modifierValeur(int $id, string $valeur, string $prixSupplement, int $ordre): void
+    public function valeurExisteDansType(int $typeId, string $valeur): bool
     {
-        $requete = $this->pdo->prepare(
-            'UPDATE OPTION_VALEUR SET valeur = :valeur, prix_supplement = :prix, ordre = :ordre WHERE id = :id'
-        );
+        $requete = $this->pdo->prepare('SELECT 1 FROM VALEUR_OPTION WHERE type_id = :type AND valeur = :valeur');
+        $requete->bindValue(':type', $typeId, PDO::PARAM_INT);
         $requete->bindValue(':valeur', $valeur, PDO::PARAM_STR);
-        $requete->bindValue(':prix', $prixSupplement, PDO::PARAM_STR);
-        $requete->bindValue(':ordre', $ordre, PDO::PARAM_INT);
-        $requete->bindValue(':id', $id, PDO::PARAM_INT);
         $requete->execute();
+
+        return $requete->fetchColumn() !== false;
     }
 
-    /**
-     * Supprime une valeur d'option.
-     */
-    public function supprimerValeur(int $id): void
+    public function creerValeurCatalogue(int $typeId, string $valeur): int
     {
-        $requete = $this->pdo->prepare('DELETE FROM OPTION_VALEUR WHERE id = :id');
+        $requete = $this->pdo->prepare('INSERT INTO VALEUR_OPTION (type_id, valeur) VALUES (:type, :valeur)');
+        $requete->bindValue(':type', $typeId, PDO::PARAM_INT);
+        $requete->bindValue(':valeur', $valeur, PDO::PARAM_STR);
+        $requete->execute();
+
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    /** @return array{id: int, type_id: int}|null */
+    public function trouverValeurCatalogue(int $id): ?array
+    {
+        $requete = $this->pdo->prepare('SELECT id, type_id FROM VALEUR_OPTION WHERE id = :id');
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+
+        $ligne = $requete->fetch();
+        if ($ligne === false) {
+            return null;
+        }
+
+        return ['id' => (int) $ligne['id'], 'type_id' => (int) $ligne['type_id']];
+    }
+
+    public function valeurUtilisee(int $id): bool
+    {
+        $requete = $this->pdo->prepare('SELECT 1 FROM PRODUIT_VALEUR WHERE valeur_id = :id LIMIT 1');
+        $requete->bindValue(':id', $id, PDO::PARAM_INT);
+        $requete->execute();
+
+        return $requete->fetchColumn() !== false;
+    }
+
+    public function supprimerValeurCatalogue(int $id): void
+    {
+        $requete = $this->pdo->prepare('DELETE FROM VALEUR_OPTION WHERE id = :id');
         $requete->bindValue(':id', $id, PDO::PARAM_INT);
         $requete->execute();
     }
 
     /**
-     * Les options de personnalisation d'un produit, avec leurs valeurs et leur
-     * supplément de prix.
-     *
+     * Options choisies pour un produit : un bloc par type, avec les valeurs cochées.
      * @return list<array{id: int, nom: string, ordre: int, valeurs: list<array{id: int, valeur: string, prix_supplement: string, ordre: int}>}>
      */
     public function optionsDuProduit(int $produitId): array
     {
-        $requetePreparee = $this->pdo->prepare(
-            'SELECT OPTION_PRODUIT.id, OPTION_PRODUIT.nom, OPTION_PRODUIT.ordre,
-                    OPTION_VALEUR.id         AS valeur_id,
-                    OPTION_VALEUR.valeur     AS valeur,
-                    OPTION_VALEUR.prix_supplement AS prix_supplement,
-                    OPTION_VALEUR.ordre      AS valeur_ordre
-               FROM OPTION_PRODUIT
-          LEFT JOIN OPTION_VALEUR ON OPTION_VALEUR.option_id = OPTION_PRODUIT.id
-              WHERE OPTION_PRODUIT.produit_id = :produit
-           ORDER BY OPTION_PRODUIT.ordre ASC, OPTION_PRODUIT.id ASC,
-                    OPTION_VALEUR.ordre ASC, OPTION_VALEUR.id ASC'
+        $requete = $this->pdo->prepare(
+            'SELECT TYPE_OPTION.id AS type_id, TYPE_OPTION.nom,
+                    VALEUR_OPTION.id AS valeur_id, VALEUR_OPTION.valeur,
+                    PRODUIT_VALEUR.prix_supplement
+               FROM PRODUIT_VALEUR
+               JOIN VALEUR_OPTION ON VALEUR_OPTION.id = PRODUIT_VALEUR.valeur_id
+               JOIN TYPE_OPTION ON TYPE_OPTION.id = VALEUR_OPTION.type_id
+              WHERE PRODUIT_VALEUR.produit_id = :produit
+           ORDER BY TYPE_OPTION.nom ASC, VALEUR_OPTION.valeur ASC'
         );
-        $requetePreparee->bindValue(':produit', $produitId, PDO::PARAM_INT);
-        $requetePreparee->execute();
+        $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+        $requete->execute();
 
-        $options = [];
-
-        foreach ($requetePreparee->fetchAll() as $ligne) {
-            $optionId = (int) $ligne['id'];
-
-            if (!isset($options[$optionId])) {
-                $options[$optionId] = [
-                    'id'      => $optionId,
-                    'nom'     => $ligne['nom'],
-                    'ordre'   => (int) $ligne['ordre'],
-                    'valeurs' => [],
-                ];
+        $types = [];
+        foreach ($requete->fetchAll() as $ligne) {
+            $typeId = (int) $ligne['type_id'];
+            if (!isset($types[$typeId])) {
+                $types[$typeId] = ['id' => $typeId, 'nom' => $ligne['nom'], 'ordre' => 1, 'valeurs' => []];
             }
-
-            if ($ligne['valeur_id'] !== null) {
-                // Les DECIMAL restent en texte : le front les convertit.
-                $options[$optionId]['valeurs'][] = [
-                    'id'               => (int) $ligne['valeur_id'],
-                    'valeur'           => $ligne['valeur'],
-                    'prix_supplement'  => $ligne['prix_supplement'],
-                    'ordre'            => (int) $ligne['valeur_ordre'],
-                ];
-            }
+            $types[$typeId]['valeurs'][] = [
+                'id'              => (int) $ligne['valeur_id'],
+                'valeur'          => $ligne['valeur'],
+                'prix_supplement' => $ligne['prix_supplement'],
+                'ordre'           => count($types[$typeId]['valeurs']) + 1,
+            ];
         }
 
-        return array_values($options);
+        return array_values($types);
     }
 
     /**
-     * Une option par son identifiant, avec le produit auquel elle est rattachée.
+     * Remplace les valeurs choisies d'un produit. Les prix déjà saisis sont conservés
+     * pour les valeurs qui restent cochées.
      *
-     * @return array<string, mixed>|null
+     * @param list<int> $valeurIds
      */
-    public function trouverOption(int $id): ?array
+    public function remplacerChoix(int $produitId, array $valeurIds): void
     {
-        $requete = $this->pdo->prepare(
-            'SELECT OPTION_PRODUIT.id, OPTION_PRODUIT.produit_id
-               FROM OPTION_PRODUIT
-              WHERE OPTION_PRODUIT.id = :id'
-        );
-        $requete->bindValue(':id', $id, PDO::PARAM_INT);
-        $requete->execute();
-
-        $ligne = $requete->fetch();
-
-        if ($ligne === false) {
-            return null;
+        if ($valeurIds === []) {
+            $requete = $this->pdo->prepare('DELETE FROM PRODUIT_VALEUR WHERE produit_id = :produit');
+            $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+            $requete->execute();
+        } else {
+            $marques = [];
+            foreach ($valeurIds as $i => $_) {
+                $marques[] = ':v' . $i;
+            }
+            $requete = $this->pdo->prepare(
+                'DELETE FROM PRODUIT_VALEUR
+                  WHERE produit_id = :produit AND valeur_id NOT IN (' . implode(', ', $marques) . ')'
+            );
+            $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+            foreach ($valeurIds as $i => $valeurId) {
+                $requete->bindValue(':v' . $i, $valeurId, PDO::PARAM_INT);
+            }
+            $requete->execute();
         }
 
-        return [
-            'id'         => (int) $ligne['id'],
-            'produit_id' => (int) $ligne['produit_id'],
-        ];
-    }
-
-    /**
-     * Une valeur d'option par son identifiant, avec son option parente.
-     *
-     * @return array<string, mixed>|null
-     */
-    public function trouverValeur(int $id): ?array
-    {
-        $requete = $this->pdo->prepare(
-            'SELECT OPTION_VALEUR.id, OPTION_VALEUR.option_id
-               FROM OPTION_VALEUR
-              WHERE OPTION_VALEUR.id = :id'
-        );
-        $requete->bindValue(':id', $id, PDO::PARAM_INT);
-        $requete->execute();
-
-        $ligne = $requete->fetch();
-
-        if ($ligne === false) {
-            return null;
+        foreach ($valeurIds as $valeurId) {
+            $requete = $this->pdo->prepare(
+                'INSERT IGNORE INTO PRODUIT_VALEUR (produit_id, valeur_id, prix_supplement)
+                 VALUES (:produit, :valeur, 0.00)'
+            );
+            $requete->bindValue(':produit', $produitId, PDO::PARAM_INT);
+            $requete->bindValue(':valeur', $valeurId, PDO::PARAM_INT);
+            $requete->execute();
         }
-
-        return [
-            'id'        => (int) $ligne['id'],
-            'option_id' => (int) $ligne['option_id'],
-        ];
     }
 
     /**
@@ -634,6 +608,10 @@ final class ProduitModel
             $chemins = array_column($this->imagesParProduit($id)[$id] ?? [], 'chemin');
 
             $requete = $this->pdo->prepare('DELETE FROM GALERIE WHERE produit_id = :id');
+            $requete->bindValue(':id', $id, PDO::PARAM_INT);
+            $requete->execute();
+
+            $requete = $this->pdo->prepare('DELETE FROM PRODUIT_VALEUR WHERE produit_id = :id');
             $requete->bindValue(':id', $id, PDO::PARAM_INT);
             $requete->execute();
 

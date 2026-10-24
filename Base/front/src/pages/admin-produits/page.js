@@ -43,12 +43,14 @@ let C = {};
 /** Charge produits et catégories. Le serveur décide de l'accès. */
 C.chargerDonnees = async function () {
   try {
-    let [liste, categories] = await Promise.all([
+    let [liste, categories, catalogue] = await Promise.all([
       ProduitData.fetchAdminListe(1),
       CategorieData.fetchAdminListe(),
+      ProduitData.fetchCatalogue(),
     ]);
     C.appliquerListe(liste);
     M.categories = categories;
+    M.catalogue = catalogue;
     M.acces = "ok";
     definirAdminConnecte(true);
   } catch (erreur) {
@@ -165,7 +167,7 @@ C.lireDataUrl = function (fichier) {
 };
 
 C.handler_ouvrirCreation = function () {
-  M.edition = { id: null, valeurs: C.valeursVides(), images: [], options: [] };
+  M.edition = { id: null, valeurs: C.valeursVides(), images: [], typesActifs: [], valeursChoisies: [] };
   M.suppression = null;
   M.message = null;
   V.rafraichir();
@@ -180,7 +182,13 @@ C.handler_ouvrirModification = async function (id) {
   } catch (erreur) {
     M.message = { type: "erreur", texte: `Impossible de charger les options : ${erreur.message}` };
   }
-  M.edition = { id: produit.id, valeurs: C.valeursDepuis(produit), images: produit.images, options };
+  M.edition = {
+    id: produit.id,
+    valeurs: C.valeursDepuis(produit),
+    images: produit.images,
+    typesActifs: options.map((o) => o.id),
+    valeursChoisies: options.flatMap((o) => o.valeurs.map((v) => v.id)),
+  };
   M.suppression = null;
   M.message = null;
   V.rafraichir();
@@ -249,6 +257,7 @@ C.handler_enregistrer = async function (valeurs) {
 
     M.edition = { ...M.edition, id: produit.id };
     produitSauve = true;
+    await ProduitData.enregistrerChoix(produit.id, M.edition.valeursChoisies);
 
     if (Array.isArray(valeurs.images)) {
       for (const fichier of valeurs.images) {
@@ -295,109 +304,113 @@ C.handler_supprimerImage = async function (imageId, valeursCourantes) {
   V.rafraichir();
 };
 
-/** Affiche ou masque la zone des options, sans rien supprimer. */
+/** Case « Activer les options » : affichage seulement, rien n'est supprimé. */
 C.handler_basculerOptions = function (actif) {
   if (!M.edition) return;
   M.edition = { ...M.edition, optionsActives: actif };
 };
 
 /**
- * Crée une option et ses valeurs (« S, M, L ») pour le produit en cours.
- * En cas d'erreur, seul le message change : les champs gardent leur saisie.
+ * Enregistre les valeurs cochées pour un produit existant.
+ * Pour un produit neuf, elles partent avec « Enregistrer ».
  */
-C.handler_ajouterOption = async function (nomSaisi, valeursSaisies) {
-  if (!M.edition?.id) return;
-
-  const nom = nomSaisi.trim();
-  const valeurs = valeursSaisies.split(",").map((v) => v.trim()).filter((v) => v !== "");
-  if (nom === "") return C.signaler({ type: "erreur", texte: "Donnez un nom à l'option, par exemple Taille." });
-  if (valeurs.length === 0) return C.signaler({ type: "erreur", texte: "Indiquez au moins une valeur, séparées par des virgules." });
+C.enregistrerChoix = async function () {
+  const id = M.edition?.id;
+  if (!id) return;
 
   try {
-    const idsAvant = new Set(M.edition.options.map((o) => o.id));
-    let options = await ProduitData.creerOption(M.edition.id, { nom, ordre: M.edition.options.length + 1 });
-    const nouvelle = options.find((o) => !idsAvant.has(o.id));
+    await ProduitData.enregistrerChoix(id, M.edition.valeursChoisies);
+    C.signaler({ type: "info", texte: "Options enregistrées." });
+  } catch (erreur) {
+    C.signaler({ type: "erreur", texte: erreur.message });
+  }
+};
 
-    for (const [index, valeur] of valeurs.entries()) {
-      options = await ProduitData.ajouterValeur(nouvelle.id, { valeur, prix_supplement: 0, ordre: index + 1 });
-    }
+/** Coche ou décoche un type. Le décocher retire aussi ses valeurs pour ce produit. */
+C.handler_basculerType = function (typeId, actif) {
+  if (!M.edition) return;
 
-    M.edition = { ...M.edition, options };
+  const typesActifs = actif
+    ? [...new Set([...M.edition.typesActifs, typeId])]
+    : M.edition.typesActifs.filter((id) => id !== typeId);
+
+  let valeursChoisies = M.edition.valeursChoisies;
+  if (!actif) {
+    const type = (M.catalogue ?? []).find((t) => t.id === typeId);
+    const ids = (type?.valeurs ?? []).map((v) => v.id);
+    valeursChoisies = valeursChoisies.filter((id) => !ids.includes(id));
+  }
+
+  M.edition = { ...M.edition, typesActifs, valeursChoisies };
+  C.enregistrerChoix();
+};
+
+/** Coche ou décoche une valeur pour ce produit. */
+C.handler_basculerValeur = function (valeurId, coche) {
+  if (!M.edition) return;
+
+  const sans = M.edition.valeursChoisies.filter((id) => id !== valeurId);
+  M.edition = { ...M.edition, valeursChoisies: coche ? [...sans, valeurId] : sans };
+  C.enregistrerChoix();
+};
+
+/** Crée un type d'option (ex. Matière) dans le catalogue commun. */
+C.handler_creerType = async function (nomSaisi) {
+  const nom = nomSaisi.trim();
+  if (nom === "") {
+    return C.signaler({ type: "erreur", texte: "Donnez un nom au type d'option, par exemple Couleur." });
+  }
+
+  try {
+    M.catalogue = await ProduitData.creerType(nom);
   } catch (erreur) {
     return C.signaler({ type: "erreur", texte: erreur.message });
   }
 
   M.message = null;
-  V.rafraichir(); // le formulaire repart vide, la nouvelle option apparaît dans la liste
-};
-
-/** Ajoute une valeur à une option du produit en cours d'édition. */
-C.handler_ajouterValeur = async function (optionId, valeur, prixSupplement, ordre) {
-  if (!M.edition?.id) return;
-  try {
-    M.edition.options = await ProduitData.ajouterValeur(optionId, {
-      valeur,
-      prix_supplement: prixSupplement,
-      ordre,
-    });
-    M.message = null;
-  } catch (erreur) {
-    return C.signaler({ type: "erreur", texte: erreur.message });
-  }
   V.rafraichir();
 };
 
-/** Modifie une option du produit en cours d'édition. */
-C.handler_modifierOption = async function (id, nom, ordre) {
-  if (!M.edition?.id) return;
+/** Ajoute une valeur au catalogue de son type, puis la coche pour ce produit. */
+C.handler_ajouterValeurCatalogue = async function (typeId, valeurSaisie) {
+  const valeur = valeurSaisie.trim();
+  if (valeur === "") {
+    return C.signaler({ type: "erreur", texte: "Donnez une valeur, par exemple Vert." });
+  }
+
   try {
-    M.edition.options = await ProduitData.modifierOption(id, { nom, ordre });
-    M.message = null;
+    M.catalogue = await ProduitData.creerValeurCatalogue(typeId, valeur);
   } catch (erreur) {
     return C.signaler({ type: "erreur", texte: erreur.message });
   }
+
+  const type = M.catalogue.find((t) => t.id === typeId);
+  const nouvelle = type?.valeurs.find((v) => v.valeur.toLowerCase() === valeur.toLowerCase());
+  if (nouvelle) {
+    M.edition = {
+      ...M.edition,
+      typesActifs: [...new Set([...M.edition.typesActifs, typeId])],
+      valeursChoisies: [...new Set([...M.edition.valeursChoisies, nouvelle.id])],
+    };
+    await C.enregistrerChoix();
+  }
+
   V.rafraichir();
 };
 
-/** Supprime une option (et ses valeurs) du produit en cours d'édition. */
-C.handler_supprimerOption = async function (id) {
-  if (!M.edition?.id) return;
+/** Supprime une valeur du catalogue, si aucun produit ne l'utilise. */
+C.handler_supprimerValeurCatalogue = async function (valeurId) {
   try {
-    M.edition.options = await ProduitData.supprimerOption(id);
-    M.message = null;
+    M.catalogue = await ProduitData.supprimerValeurCatalogue(valeurId);
   } catch (erreur) {
     return C.signaler({ type: "erreur", texte: erreur.message });
   }
+
+  M.edition = { ...M.edition, valeursChoisies: M.edition.valeursChoisies.filter((id) => id !== valeurId) };
+  M.message = null;
   V.rafraichir();
 };
 
-/** Modifie une valeur d'option du produit en cours d'édition. */
-C.handler_modifierValeur = async function (id, valeur, prixSupplement, ordre) {
-  if (!M.edition?.id) return;
-  try {
-    M.edition.options = await ProduitData.modifierValeur(id, {
-      valeur,
-      prix_supplement: prixSupplement,
-      ordre,
-    });
-    M.message = null;
-  } catch (erreur) {
-    return C.signaler({ type: "erreur", texte: erreur.message });
-  }
-  V.rafraichir();
-};
-
-/** Supprime une valeur d'option du produit en cours d'édition. */
-C.handler_supprimerValeur = async function (id) {
-  if (!M.edition?.id) return;
-  try {
-    M.edition.options = await ProduitData.supprimerValeur(id);
-    M.message = null;
-  } catch (erreur) {
-    return C.signaler({ type: "erreur", texte: erreur.message });
-  }
-  V.rafraichir();
-};
 
 C.handler_demanderSuppression = function (id) {
   const produit = C.trouverProduit(id);
@@ -500,13 +513,13 @@ V.createPageFragment = function () {
           surModification: C.handler_modifierSaisie,
           surAnnuler: C.handler_annulerFormulaire,
           surSupprimerImage: C.handler_supprimerImage,
-          surAjouterOption: C.handler_ajouterOption,
+          catalogue: M.catalogue ?? [],
           surBasculerOptions: C.handler_basculerOptions,
-          surAjouterValeur: C.handler_ajouterValeur,
-          surModifierOption: C.handler_modifierOption,
-          surSupprimerOption: C.handler_supprimerOption,
-          surModifierValeur: C.handler_modifierValeur,
-          surSupprimerValeur: C.handler_supprimerValeur,
+          surBasculerType: C.handler_basculerType,
+          surBasculerValeur: C.handler_basculerValeur,
+          surCreerType: C.handler_creerType,
+          surAjouterValeurCatalogue: C.handler_ajouterValeurCatalogue,
+          surSupprimerValeurCatalogue: C.handler_supprimerValeurCatalogue,
         })
       : ""
   );

@@ -193,51 +193,36 @@ ProduitData.fetchAdminOptions = function (id) {
 };
 
 /**
- * Crée une option pour un produit :
- * POST /api/admin/produits/:id/options -> { options }
+ * Catalogue commun des types et valeurs d'options :
+ * GET /api/admin/options/catalogue -> { types }
  */
-ProduitData.creerOption = function (produitId, donnees) {
-  return postRequest(`admin/produits/${encodeURIComponent(produitId)}/options`, donnees).then((reponse) => reponse.options);
+ProduitData.fetchCatalogue = function () {
+  return getRequest("admin/options/catalogue").then((reponse) => reponse.types);
 };
 
-/**
- * Modifie une option :
- * PUT /api/admin/produits/options/:id -> { options }
- */
-ProduitData.modifierOption = function (id, donnees) {
-  return putRequest(`admin/produits/options/${encodeURIComponent(id)}`, donnees).then((reponse) => reponse.options);
+/** Crée un type d'option : POST /api/admin/options/types -> { types } */
+ProduitData.creerType = function (nom) {
+  return postRequest("admin/options/types", { nom }).then((reponse) => reponse.types);
 };
 
-/**
- * Supprime une option (et ses valeurs) :
- * DELETE /api/admin/produits/options/:id -> { options }
- */
-ProduitData.supprimerOption = function (id) {
-  return deleteRequest(`admin/produits/options/${encodeURIComponent(id)}`).then((reponse) => reponse.options);
+/** Ajoute une valeur au catalogue d'un type : POST /api/admin/options/types/:id/valeurs -> { types } */
+ProduitData.creerValeurCatalogue = function (typeId, valeur) {
+  return postRequest(`admin/options/types/${encodeURIComponent(typeId)}/valeurs`, { valeur }).then(
+    (reponse) => reponse.types
+  );
 };
 
-/**
- * Ajoute une valeur à une option :
- * POST /api/admin/produits/options/:id/valeurs -> { options }
- */
-ProduitData.ajouterValeur = function (optionId, donnees) {
-  return postRequest(`admin/produits/options/${encodeURIComponent(optionId)}/valeurs`, donnees).then((reponse) => reponse.options);
+/** Supprime une valeur du catalogue (refusé si un produit l'utilise) : DELETE /api/admin/options/valeurs/:id -> { types } */
+ProduitData.supprimerValeurCatalogue = function (id) {
+  return deleteRequest(`admin/options/valeurs/${encodeURIComponent(id)}`).then((reponse) => reponse.types);
 };
 
-/**
- * Modifie une valeur d'option :
- * PUT /api/admin/produits/valeurs/:id -> { options }
- */
-ProduitData.modifierValeur = function (id, donnees) {
-  return putRequest(`admin/produits/valeurs/${encodeURIComponent(id)}`, donnees).then((reponse) => reponse.options);
+/** Enregistre les valeurs choisies pour un produit : PUT /api/admin/produits/:id/options -> { options } */
+ProduitData.enregistrerChoix = function (produitId, valeurIds) {
+  return putRequest(`admin/produits/${encodeURIComponent(produitId)}/options`, { valeurs: valeurIds }).then(
+    (reponse) => reponse.options
+  );
 };
 
-/**
- * Supprime une valeur d'option :
- * DELETE /api/admin/produits/valeurs/:id -> { options }
- */
-ProduitData.supprimerValeur = function (id) {
-  return deleteRequest(`admin/produits/valeurs/${encodeURIComponent(id)}`).then((reponse) => reponse.options);
-};
 
 export { ProduitData };

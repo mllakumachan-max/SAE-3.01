@@ -80,35 +80,46 @@ CREATE TABLE PRODUIT (
 -- Une option est définie pour un produit donné. Chaque valeur d'option peut
 -- proposer un supplément de prix.
 -- ---------------------------------------------------------------------------
-CREATE TABLE OPTION_PRODUIT (
-    id          SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    produit_id  SMALLINT UNSIGNED NOT NULL,
-    nom         VARCHAR(80)       NOT NULL,
-    ordre       TINYINT UNSIGNED  NOT NULL DEFAULT 1,
+CREATE TABLE TYPE_OPTION (
+    id   SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    nom  VARCHAR(80)       NOT NULL,
 
     PRIMARY KEY (id),
-    KEY idx_option_produit (produit_id),
+    UNIQUE KEY uq_type_option_nom (nom)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
 
-    CONSTRAINT fk_option_produit
-        FOREIGN KEY (produit_id) REFERENCES PRODUIT (id)
+CREATE TABLE VALEUR_OPTION (
+    id       SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    type_id  SMALLINT UNSIGNED NOT NULL,
+    valeur   VARCHAR(80)       NOT NULL,
+
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_valeur_option (type_id, valeur),
+
+    CONSTRAINT fk_valeur_option_type
+        FOREIGN KEY (type_id) REFERENCES TYPE_OPTION (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci;
 
-CREATE TABLE OPTION_VALEUR (
-    id              SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    option_id       SMALLINT UNSIGNED NOT NULL,
-    valeur          VARCHAR(80)       NOT NULL,
+CREATE TABLE PRODUIT_VALEUR (
+    produit_id      SMALLINT UNSIGNED NOT NULL,
+    valeur_id       SMALLINT UNSIGNED NOT NULL,
     prix_supplement DECIMAL(6,2)      NOT NULL DEFAULT 0.00,
-    ordre           TINYINT UNSIGNED  NOT NULL DEFAULT 1,
 
-    PRIMARY KEY (id),
-    KEY idx_option_valeur_option (option_id),
+    PRIMARY KEY (produit_id, valeur_id),
+    KEY idx_produit_valeur_valeur (valeur_id),
 
-    CONSTRAINT fk_option_valeur_option
-        FOREIGN KEY (option_id) REFERENCES OPTION_PRODUIT (id)
+    CONSTRAINT fk_produit_valeur_produit
+        FOREIGN KEY (produit_id) REFERENCES PRODUIT (id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_produit_valeur_valeur
+        FOREIGN KEY (valeur_id) REFERENCES VALEUR_OPTION (id)
         ON DELETE RESTRICT
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
@@ -288,7 +299,7 @@ VALUES
     ('3223746', 'disqueuse-filaire-1300w', 'Meuleuse d''angle', 'Varo', '1 300 W', 'Carter de protection orientable. Bouton de blocage de broche pour changement de disque.', 24.95, 24.95, '€/pce', NULL, 4, 13),
     ('3221138', 'pince-universelle-isolee', 'Pince universelle', 'Werckmann', 'Gainage ergonomique', 'Mâchoires crantées et zone de coupe pour fils rigides. Indispensable au quotidien.', 2.79, 2.79, '€/pce', NULL, 4, 13),
     ('3221139', 'reglet-metallique-60', 'Règle de marquage', 'Werckmann', '60 cm', 'Bords rectifiés permettant son utilisation comme guide de coupe au cutter.', 3.49, 3.49, '€/pce', 'Nouveau', 4, 13),
-    ('3221140', 'marteau-menuisier-fibre', 'Marteau multifonctions', 'Werckmann', 'Arrache-clou', 'Tête forgée indémanchable. Manche en fibre de verre réduisant les vibrations.', 4.99, 4.99, '€/pce', NULL, 4, 13),
+    ('3221140', 'marteau-menuisier-werckmann', 'Marteau multifonctions', 'Werckmann', 'Arrache-clou', 'Tête forgée indémanchable. Manche en fibre de verre réduisant les vibrations.', 4.99, 4.99, '€/pce', NULL, 4, 13),
     ('3221141', 'cle-anglaise-ouverture', 'Clé à molette', 'Werckmann', '14-30 mm', 'Graduation laser sur la mâchoire pour un préréglage rapide avant serrage.', 2.96, 2.96, '€/pce', NULL, 4, 13),
     ('3221142', 'pince-multiprise-cremaillere', 'Pince-étau pompe à eau', 'Werckmann', '245 mm', 'Ajustement rapide par bouton poussoir. Dents asymétriques pour une prise mordante.', 3.57, 3.57, '€/pce', NULL, 4, 13),
     ('3221143', 'lunettes-chantier-polycarbonate', 'Lunettes de protection', 'Werckmann', 'Légères', 'Protection latérale intégrée. Verres clairs résistants aux impacts de particules.', 3.49, 3.49, '€/pce', NULL, 4, 13),
@@ -313,26 +324,25 @@ UPDATE PRODUIT SET stock = 10,   seuil_alerte = 5 WHERE reference = '3221823'; -
 -- ---------------------------------------------------------------------------
 -- Options de personnalisation (OPT-c)
 -- ---------------------------------------------------------------------------
-INSERT INTO OPTION_PRODUIT (produit_id, nom, ordre) VALUES
-    ((SELECT id FROM PRODUIT WHERE reference = '3224852'), 'Couleur', 1),   -- couette sans housse Easy
-    ((SELECT id FROM PRODUIT WHERE reference = '3216983'),  'Couleur', 1),   -- serviette
-    ((SELECT id FROM PRODUIT WHERE reference = '3221823'),  'Couleur', 1);    -- rideau velours
+INSERT INTO TYPE_OPTION (nom) VALUES ('Couleur');
 
-INSERT INTO OPTION_VALEUR (option_id, valeur, prix_supplement, ordre) VALUES
-    -- Couette sans housse Easy : le beige coûte 2,00 € de plus
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Blanc',    0.00, 1),
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Beige',    2.00, 2),
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3224852') AND nom = 'Couleur'), 'Noire',    0.00, 3),
+INSERT INTO VALEUR_OPTION (type_id, valeur) VALUES
+    ((SELECT id FROM TYPE_OPTION WHERE nom = 'Couleur'), 'Blanc'),
+    ((SELECT id FROM TYPE_OPTION WHERE nom = 'Couleur'), 'Beige'),
+    ((SELECT id FROM TYPE_OPTION WHERE nom = 'Couleur'), 'Noire'),
+    ((SELECT id FROM TYPE_OPTION WHERE nom = 'Couleur'), 'Verte'),
+    ((SELECT id FROM TYPE_OPTION WHERE nom = 'Couleur'), 'Cuivre'),
+    ((SELECT id FROM TYPE_OPTION WHERE nom = 'Couleur'), 'Rose');
 
-    -- Serviette
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Noire',   0.00, 1),
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Verte',   0.00, 2),
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3216983')  AND nom = 'Couleur'), 'Cuivre',  0.00, 3),
-
-    -- Rideau velours
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Beige',  0.00, 1),
-    ((SELECT id FROM OPTION_PRODUIT WHERE produit_id = (SELECT id FROM PRODUIT WHERE reference = '3221823') AND nom = 'Couleur'), 'Rose',  0.00, 2);
-
+INSERT INTO PRODUIT_VALEUR (produit_id, valeur_id, prix_supplement) VALUES
+    ((SELECT id FROM PRODUIT WHERE reference = '3224852'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Blanc'), 0.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3224852'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Beige'), 2.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3224852'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Noire'), 0.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3216983'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Noire'), 0.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3216983'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Verte'), 0.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3216983'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Cuivre'), 0.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3221823'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Beige'), 0.00),
+    ((SELECT id FROM PRODUIT WHERE reference = '3221823'), (SELECT id FROM VALEUR_OPTION WHERE valeur = 'Rose'), 0.00);
 -- Galeries
 -- ---------------------------------------------------------------------------
 INSERT INTO GALERIE
@@ -394,7 +404,127 @@ VALUES
     ('bricolage/boite-outils-keter-fermer.avif', (SELECT id FROM PRODUIT WHERE reference = '3227914'), 4, 'Boîte à outils Keter fermée'),
     ('bricolage/lampe-travail-trepier-werckmann.avif', (SELECT id FROM PRODUIT WHERE reference = '3221537'), 1, 'Lampe de travail Werckmann'),
     ('bricolage/lampe-travail-trepier-werckmann-allumee.avif', (SELECT id FROM PRODUIT WHERE reference = '3221537'), 2, 'Lampe de travail Werckmann allumée'),
-    ('bricolage/lampe-travail-trepier-werckmann-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3221537'), 3, 'Boîte de la lampe Werckmann');
+    ('bricolage/lampe-travail-trepier-werckmann-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3221537'), 3, 'Boîte de la lampe Werckmann'),
+    ('habitat/rideaux-alaxia-beige-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 1, 'Rideau Alexia beige sachet'),
+    ('habitat/rideaux-alaxia-beige-zoom.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 2, 'Détail rideau Alexia beige'),
+    ('habitat/rideaux-alaxia-bleu.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 3, 'Rideau Alexia bleu'),
+    ('habitat/rideaux-alaxia-bleu-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 4, 'Rideau Alexia bleu sachet'),
+    ('habitat/rideaux-alaxia-bleu-zoom.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 5, 'Détail rideau Alexia bleu'),
+    ('habitat/rideaux-alaxia-gris-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 6, 'Rideau Alexia gris sachet'),
+    ('habitat/rideaux-alaxia-gris-zoom.avif', (SELECT id FROM PRODUIT WHERE reference = '3225113'), 7, 'Détail rideau Alexia gris'),
+    ('habitat/plaid-xxl-studio-home-brun.avif', (SELECT id FROM PRODUIT WHERE reference = '3016600'), 1, 'Plaid XXL brun'),
+    ('habitat/plaid-xxl-studio-home-brun-zoom.avif', (SELECT id FROM PRODUIT WHERE reference = '3016600'), 2, 'Détail plaid XXL brun'),
+    ('habitat/plaid-xxl-studio-home-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3016600'), 3, 'Plaid XXL gris'),
+    ('habitat/plaid-xxl-studio-home-gris-roule.avif', (SELECT id FROM PRODUIT WHERE reference = '3016600'), 4, 'Plaid XXL gris roulé'),
+    ('habitat/plaid-avec-sac-beige-emballe.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 1, 'Plaid avec sac beige emballé'),
+    ('habitat/plaid-avec-sac-beige-seul.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 2, 'Plaid avec sac beige seul'),
+    ('habitat/plaid-avec-sac-brun.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 3, 'Plaid avec sac brun'),
+    ('habitat/plaid-avec-sac-brun-emballe.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 4, 'Plaid avec sac brun emballé'),
+    ('habitat/plaid-avec-sac-brun-seul.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 5, 'Plaid avec sac brun seul'),
+    ('habitat/plaid-avec-sac-brun-zoom.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 6, 'Détail plaid avec sac brun'),
+    ('habitat/plaid-avec-sac-rouge-emballe.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 7, 'Plaid avec sac rouge emballé'),
+    ('habitat/plaid-avec-sac-rouge-seul.avif', (SELECT id FROM PRODUIT WHERE reference = '3223961'), 8, 'Plaid avec sac rouge seul'),
+    ('habitat/parure-lit-simple-satin-beige-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 1, 'Parure de lit satin beige sachet'),
+    ('habitat/parure-lit-simple-satin-beige-sachet-dos.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 2, 'Parure de lit satin beige dos'),
+    ('habitat/parure-lit-simple-satin-blanc-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 3, 'Parure de lit satin blanc sachet'),
+    ('habitat/parure-lit-simple-satin-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 4, 'Parure de lit satin gris'),
+    ('habitat/parure-lit-simple-satin-gris-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 5, 'Parure de lit satin gris sachet'),
+    ('habitat/parure-lit-simple-satin-gris-zoom.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 6, 'Détail parure de lit satin gris'),
+    ('habitat/parure-lit-simple-satin-rouge-sachet.avif', (SELECT id FROM PRODUIT WHERE reference = '3222146'), 7, 'Parure de lit satin rouge sachet'),
+    ('bricolage/boite-rangement-werckmann-ferme.avif', (SELECT id FROM PRODUIT WHERE reference = '3221613'), 1, 'Boîte de rangement Werckmann fermée'),
+    ('bricolage/boite-rangement-werckmann-ouvert.avif', (SELECT id FROM PRODUIT WHERE reference = '3221613'), 2, 'Boîte de rangement Werckmann ouverte'),
+    ('bricolage/marteau-menuisier-werckmann.avif', (SELECT id FROM PRODUIT WHERE reference = '3221140'), 1, 'Marteau menuisier Werckmann'),
+    ('bricolage/marteau-menuisier-werckmann-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3221140'), 2, 'Marteau menuisier Werckmann boîte'),
+    ('multimedia/amplificateur-wifi.avif', (SELECT id FROM PRODUIT WHERE reference = '3226359'), 1, 'Amplificateur Wi-Fi'),
+    ('multimedia/amplificateur-wifi-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3226359'), 2, 'Amplificateur Wi-Fi boîte'),
+    ('multimedia/amplificateur-wifi-dos.avif', (SELECT id FROM PRODUIT WHERE reference = '3226359'), 3, 'Amplificateur Wi-Fi dos'),
+    ('multimedia/barre-son-tv.avif', (SELECT id FROM PRODUIT WHERE reference = '3226355'), 1, 'Barre de son TV'),
+    ('multimedia/barre-son-tv-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3226355'), 2, 'Barre de son TV boîte'),
+    ('multimedia/barre-son-tv-kit.avif', (SELECT id FROM PRODUIT WHERE reference = '3226355'), 3, 'Barre de son TV kit'),
+    ('multimedia/batterie-externe-argent.avif', (SELECT id FROM PRODUIT WHERE reference = '3204292'), 1, 'Batterie externe argent'),
+    ('multimedia/batterie-externe-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3204292'), 2, 'Batterie externe boîte'),
+    ('multimedia/batterie-externe-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3204292'), 3, 'Batterie externe gris'),
+    ('multimedia/batterie-externe-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '3204292'), 4, 'Batterie externe noir'),
+    ('multimedia/batterie-externe-noir-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3204292'), 5, 'Batterie externe noir embout'),
+    ('multimedia/batterie-externe-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3204292'), 6, 'Batterie externe gris'),
+    ('multimedia/batterie-sitecom-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3222798'), 1, 'Batterie Sitecom gris'),
+    ('multimedia/batterie-sitecom-gris-left.avif', (SELECT id FROM PRODUIT WHERE reference = '3222798'), 2, 'Batterie Sitecom gris gauche'),
+    ('multimedia/batterie-sitecom-gris-right.avif', (SELECT id FROM PRODUIT WHERE reference = '3222798'), 3, 'Batterie Sitecom gris droite'),
+    ('multimedia/batterie-sitecom-rose.avif', (SELECT id FROM PRODUIT WHERE reference = '3222798'), 4, 'Batterie Sitecom rose'),
+    ('multimedia/batterie-sitecom-vert.avif', (SELECT id FROM PRODUIT WHERE reference = '3222798'), 5, 'Batterie Sitecom vert'),
+    ('multimedia/boitier-synchro-led-tv-allume.avif', (SELECT id FROM PRODUIT WHERE reference = '3225765'), 1, 'Boîtier synchro LED TV allumé'),
+    ('multimedia/boitier-synchro-led-tv-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3225765'), 2, 'Boîtier synchro LED TV boîte'),
+    ('multimedia/boitier-synchro-led-tv-eteint.avif', (SELECT id FROM PRODUIT WHERE reference = '3225765'), 3, 'Boîtier synchro LED TV éteint'),
+    ('multimedia/boitier-synchro-led-tv-kit.avif', (SELECT id FROM PRODUIT WHERE reference = '3225765'), 4, 'Boîtier synchro LED TV kit'),
+    ('multimedia/stylet-universel.avif', (SELECT id FROM PRODUIT WHERE reference = '3010167'), 1, 'Stylet universel'),
+    ('multimedia/stylet-universel-boite-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3010167'), 2, 'Stylet universel boîte blanche'),
+    ('multimedia/stylet-universel-boite-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '3010167'), 3, 'Stylet universel boîte noire'),
+    ('multimedia/cable-hdmi-sitecom.avif', (SELECT id FROM PRODUIT WHERE reference = '3226469'), 1, 'Câble HDMI Sitecom'),
+    ('multimedia/cable-hdmi-sitecom-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3226469'), 2, 'Câble HDMI Sitecom boîte'),
+    ('multimedia/cable-hdmi-sitecom-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3226469'), 3, 'Câble HDMI Sitecom embout'),
+    ('multimedia/cable-chargeur-3en1-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3222943'), 1, 'Câble de charge 3-en-1 blanc'),
+    ('multimedia/cable-chargeur-3en1-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3222943'), 2, 'Câble de charge 3-en-1 boîte'),
+    ('multimedia/cable-chargeur-3en1-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3222943'), 3, 'Câble de charge 3-en-1 gris'),
+    ('multimedia/cable-chargeur-3en1-gris-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3222943'), 4, 'Câble de charge 3-en-1 gris embout'),
+    ('multimedia/cable-enrouleur.avif', (SELECT id FROM PRODUIT WHERE reference = '3215660'), 1, 'Câble de charge rétractable'),
+    ('multimedia/cable-enrouleur-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3215660'), 2, 'Câble de charge rétractable boîte'),
+    ('multimedia/cable-enrouleur-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3215660'), 3, 'Câble de charge rétractable embout'),
+    ('multimedia/reveil-chargeur-sans-fil-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '3209503'), 1, 'Réveil avec chargeur sans fil noir'),
+    ('multimedia/reveil-chargeur-sans-fil-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3209503'), 2, 'Réveil avec chargeur sans fil boîte'),
+    ('multimedia/reveil-chargeur-sans-fil-brun.avif', (SELECT id FROM PRODUIT WHERE reference = '3209503'), 3, 'Réveil avec chargeur sans fil brun'),
+    ('multimedia/support-telephone-voiture.avif', (SELECT id FROM PRODUIT WHERE reference = '3222375'), 1, 'Support de téléphone pour voiture'),
+    ('multimedia/support-telephone-voiture-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3222375'), 2, 'Support de téléphone pour voiture boîte'),
+    ('multimedia/station-charge-sans-fil.avif', (SELECT id FROM PRODUIT WHERE reference = '3218302'), 1, 'Station de charge sans fil'),
+    ('multimedia/station-charge-sans-fil-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3218302'), 2, 'Station de charge sans fil boîte'),
+    ('multimedia/station-charge-sans-fil-kit.avif', (SELECT id FROM PRODUIT WHERE reference = '3218302'), 3, 'Station de charge sans fil kit'),
+    ('multimedia/chargeur-allume-cigare.avif', (SELECT id FROM PRODUIT WHERE reference = '3226358'), 1, 'Chargeur de voiture 5 ports'),
+    ('multimedia/chargeur-allume-cigare-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3226358'), 2, 'Chargeur de voiture 5 ports boîte'),
+    ('multimedia/tracker-bluetooth-clefs-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3226361'), 1, 'Balise Smartfinder blanc'),
+    ('multimedia/tracker-bluetooth-clefs-bleu.avif', (SELECT id FROM PRODUIT WHERE reference = '3226361'), 2, 'Balise Smartfinder bleu'),
+    ('multimedia/tracker-bluetooth-clefs-bleu-dos.avif', (SELECT id FROM PRODUIT WHERE reference = '3226361'), 3, 'Balise Smartfinder bleu dos'),
+    ('multimedia/tracker-bluetooth-clefs-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3226361'), 4, 'Balise Smartfinder gris'),
+    ('multimedia/tracker-bluetooth-clefs-rose.avif', (SELECT id FROM PRODUIT WHERE reference = '3226361'), 5, 'Balise Smartfinder rose'),
+    ('multimedia/tracker-bluetooth-clefs-violet.avif', (SELECT id FROM PRODUIT WHERE reference = '3226361'), 6, 'Balise Smartfinder violet'),
+    ('multimedia/trepied-smartphone-photo.avif', (SELECT id FROM PRODUIT WHERE reference = '3201718'), 1, 'Trépied télescopique'),
+    ('multimedia/trepied-smartphone-photo-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3201718'), 2, 'Trépied télescopique boîte'),
+    ('multimedia/trepied-smartphone-photo-kit.avif', (SELECT id FROM PRODUIT WHERE reference = '3201718'), 3, 'Trépied télescopique kit'),
+    ('multimedia/kit-nettoyage-multimedia.avif', (SELECT id FROM PRODUIT WHERE reference = '3222863'), 1, 'Kit de nettoyage multimédia'),
+    ('multimedia/kit-nettoyage-multimedia-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3222863'), 2, 'Kit de nettoyage multimédia blanc'),
+    ('multimedia/kit-nettoyage-multimedia-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3222863'), 3, 'Kit de nettoyage multimédia gris'),
+    ('multimedia/support-ordinateur-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '2578240'), 1, 'Support pour ordinateur portable blanc'),
+    ('multimedia/support-ordinateur-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '2578240'), 2, 'Support pour ordinateur portable noir'),
+    ('multimedia/support-ordinateur-sac.avif', (SELECT id FROM PRODUIT WHERE reference = '2578240'), 3, 'Support pour ordinateur portable sac'),
+    ('multimedia/cable-donnees-silicone-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 1, 'Câble de données en silicone blanc'),
+    ('multimedia/cable-donnees-silicone-bleu.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 2, 'Câble de données en silicone bleu'),
+    ('multimedia/cable-donnees-silicone-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 3, 'Câble de données en silicone boîte'),
+    ('multimedia/cable-donnees-silicone-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 4, 'Câble de données en silicone embout'),
+    ('multimedia/cable-donnees-silicone-gris.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 5, 'Câble de données en silicone gris'),
+    ('multimedia/cable-donnees-silicone-violet.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 6, 'Câble de données en silicone violet'),
+    ('multimedia/cable-donnees-silicone-violet-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3224680'), 7, 'Câble de données en silicone violet embout'),
+    ('multimedia/enceinte-bluetooth-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3226353'), 1, 'Enceinte sans fil blanc'),
+    ('multimedia/enceinte-bluetooth-gris-cote.avif', (SELECT id FROM PRODUIT WHERE reference = '3226353'), 2, 'Enceinte sans fil gris côté'),
+    ('multimedia/enceinte-bluetooth-gris-dos.avif', (SELECT id FROM PRODUIT WHERE reference = '3226353'), 3, 'Enceinte sans fil gris dos'),
+    ('multimedia/enceinte-bluetooth-gris-face.avif', (SELECT id FROM PRODUIT WHERE reference = '3226353'), 4, 'Enceinte sans fil gris face'),
+    ('multimedia/enceinte-bluetooth-taupe.avif', (SELECT id FROM PRODUIT WHERE reference = '3226353'), 5, 'Enceinte sans fil taupe'),
+    ('multimedia/enceinte-bluetooth-xl-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 1, 'Enceinte Boombox XL blanc'),
+    ('multimedia/enceinte-bluetooth-xl-bleu.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 2, 'Enceinte Boombox XL bleu'),
+    ('multimedia/enceinte-bluetooth-xl-dos.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 3, 'Enceinte Boombox XL dos'),
+    ('multimedia/enceinte-bluetooth-xl-face.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 4, 'Enceinte Boombox XL face'),
+    ('multimedia/enceinte-bluetooth-xl-rose.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 5, 'Enceinte Boombox XL rose'),
+    ('multimedia/enceinte-bluetooth-xl-rouge.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 6, 'Enceinte Boombox XL rouge'),
+    ('multimedia/enceinte-bluetooth-xl-vert.avif', (SELECT id FROM PRODUIT WHERE reference = '3226354'), 7, 'Enceinte Boombox XL vert'),
+    ('multimedia/lot-cables-sologic-blanc-gris-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '3223498'), 1, 'Lot de câbles Sologic blanc gris noir'),
+    ('multimedia/lot-cables-sologic-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3223498'), 2, 'Lot de câbles Sologic boîte'),
+    ('multimedia/lot-cables-sologic-violet-bleu-vert.avif', (SELECT id FROM PRODUIT WHERE reference = '3223498'), 3, 'Lot de câbles Sologic violet bleu vert'),
+    ('multimedia/lot-cables-sologic-violet-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3223498'), 4, 'Lot de câbles Sologic violet embout'),
+    ('multimedia/ecouteurs-anc-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3226356'), 1, 'Écouteurs sans fil ANC blanc'),
+    ('multimedia/ecouteurs-anc-blanc-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3226356'), 2, 'Écouteurs sans fil ANC blanc boîte'),
+    ('multimedia/ecouteurs-anc-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '3226356'), 3, 'Écouteurs sans fil ANC noir'),
+    ('multimedia/ecouteurs-anc-noir-boite.avif', (SELECT id FROM PRODUIT WHERE reference = '3226356'), 4, 'Écouteurs sans fil ANC noir boîte'),
+    ('multimedia/ecouteurs-anc-noir-embout.avif', (SELECT id FROM PRODUIT WHERE reference = '3226356'), 5, 'Écouteurs sans fil ANC noir embout'),
+    ('multimedia/ecouteurs-anc-noir-kit.avif', (SELECT id FROM PRODUIT WHERE reference = '3226356'), 6, 'Écouteurs sans fil ANC noir kit'),
+    ('multimedia/chargeur-magnetique-blanc.avif', (SELECT id FROM PRODUIT WHERE reference = '3220416'), 1, 'Chargeur magnétique sans fil blanc'),
+    ('multimedia/chargeur-magnetique-noir.avif', (SELECT id FROM PRODUIT WHERE reference = '3220416'), 2, 'Chargeur magnétique sans fil noir');
 
 -- ---------------------------------------------------------------------------
 
